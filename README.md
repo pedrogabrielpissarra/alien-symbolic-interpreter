@@ -1,2 +1,13 @@
-# alien-symbolic-interpreter
-Alien Symbolic Interpreter
+# Alien Symbolic Interpreter
+
+A prototype CLI tool to explore a hypothetical "language of shapes" for cosmic signals, as proposed in the article ["The Language of Shapes: A New Approach to Cosmic Signals"](link-to-your-medium-article).
+
+## Purpose
+This tool simulates a symbolic language where shapes represent physical and existential concepts, inspired by phenomena like quantum entanglement, cosmic inflation, and real signals like the Wow! Signal and FRBs. It’s a proof-of-concept to provoke reflection among scientists about alternative ways to interpret cosmic signals.
+
+## How to Run
+1. **Requirements**: Python 3.x
+2. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/pedrogabrielpissarra/alien-symbolic-interpreter.git
+   cd alien-symbolic-interpreter
