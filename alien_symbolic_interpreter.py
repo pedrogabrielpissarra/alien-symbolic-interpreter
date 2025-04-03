@@ -65,7 +65,6 @@ signals = {
 
 # Symbolic parser with context and conditionals
 def evaluate_subexpression(subexpr, context):
-    # Remove os parênteses externos e interpreta a subexpressão
     subexpr = subexpr.strip("()")
     tokens = subexpr.replace("=", " = ").split()
     output = []
@@ -78,7 +77,6 @@ def evaluate_subexpression(subexpr, context):
     return " ".join(map(str, output))
 
 def interpret(expression, context):
-    # Primeiro, lidamos com expressões condicionais
     if expression.startswith("if"):
         condition = expression[3:].strip(":")
         left, op, right = condition.split()
@@ -87,15 +85,12 @@ def interpret(expression, context):
         condition_met = (left_val == right_val if op == "==" else left_val != right_val)
         return f"Condition {left} {op} {right} => {condition_met}"
 
-    # Lidar com transições (→)
     if "→" in expression:
         origin, target = expression.split("→")
         origin = origin.strip()
         target = target.strip()
 
-        # Verificar se a origem contém parênteses
         while "(" in origin and ")" in origin:
-            # Encontrar a subexpressão mais interna
             start = origin.rindex("(")
             end = origin.find(")", start)
             if end == -1:
@@ -104,7 +99,6 @@ def interpret(expression, context):
             subresult = evaluate_subexpression(subexpr, context)
             origin = origin[:start] + subresult + origin[end+1:]
 
-        # Interpretar a origem após resolver os parênteses
         tokens = origin.replace("=", " = ").split()
         output = []
         for token in tokens:
@@ -117,7 +111,6 @@ def interpret(expression, context):
         context[target] = result
         return f"Transition: {origin} → {target} => {context.get(target)}"
 
-    # Lidar com expressões gerais
     while "(" in expression and ")" in expression:
         start = expression.rindex("(")
         end = expression.find(")", start)
@@ -144,17 +137,14 @@ class AlienSymbolicInterpreterGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("👽 Alien Symbolic Interpreter (Prototype v12)")
-        self.context = {}  # Initialize context for symbolic operations
-        self.current_expression = []  # Store the current expression being built
-        self.expression_history = []  # Store history of interpreted expressions
-        self.favorites = {"phenomena": [], "signals": []}  # Store favorite phenomena and signals
-        self.load_favorites()  # Load favorites from file
-        self.dark_mode = True  # Start in dark mode
+        self.context = {}
+        self.current_expression = []
+        self.expression_history = []
+        self.favorites = {"phenomena": [], "signals": []}
+        self.load_favorites()
+        self.dark_mode = True  # Dark mode fixo
 
-        # Set window size
         self.root.geometry("1000x500")
-
-        # Configure styles for dark and light modes (but don't apply yet)
         self.style = ttk.Style()
 
         # Main frame with horizontal layout
@@ -210,7 +200,44 @@ class AlienSymbolicInterpreterGUI:
         self.favorites_output.insert(tk.END, "Your favorite phenomena and signals will appear here.\n")
         self.favorites_output.insert(tk.END, "Double-click items in 'List Phenomena' or 'List Signals' to add/remove favorites.\n")
         self.favorites_output.insert(tk.END, "Select a favorite from the dropdown and click 'Run Favorite' to execute.\n\n")
-        self.update_favorites_output()  # Populate the favorites list initially
+        self.update_favorites_output()
+
+        # Tutorial Tab
+        self.tutorial_tab = ttk.Frame(self.output_notebook)
+        self.output_notebook.add(self.tutorial_tab, text="Tutorial")
+        self.tutorial_output = scrolledtext.ScrolledText(self.tutorial_tab, width=40, height=20, wrap=tk.WORD)
+        self.tutorial_output.grid(row=0, column=0, pady=5)
+        self.tutorial_output.tag_configure("title", font=("Arial", 12, "bold"), foreground="lightblue")
+        self.tutorial_output.tag_configure("section", font=("Arial", 10, "bold"), foreground="white")
+        self.tutorial_output.tag_configure("text", foreground="white")
+        self.tutorial_output.insert(tk.END, "Alien Symbolic Interpreter Tutorial\n\n", "title")
+        self.tutorial_output.insert(tk.END, "Welcome to the Alien Symbolic Interpreter!\n\n", "text")
+        self.tutorial_output.insert(tk.END, "Follow these steps to explore the language of shapes:\n\n", "section")
+        self.tutorial_output.insert(tk.END, "1. Build an Expression:\n", "section")
+        self.tutorial_output.insert(tk.END, "   - Click the symbols in the center panel to build an expression (e.g., Ψ + ∴ = ◐).\n", "text")
+        self.tutorial_output.insert(tk.END, "   - Use the operator buttons (+, ×, =, →, (, )) to add operators.\n", "text")
+        self.tutorial_output.insert(tk.END, "   - Click 'Interpret Built Expression' to see the result in the 'Expressions' tab.\n", "text")
+        self.tutorial_output.insert(tk.END, "   - If the expression matches a known phenomenon, it will also appear in the 'Phenomena' tab.\n\n", "text")
+        self.tutorial_output.insert(tk.END, "2. Enter an Expression Manually:\n", "section")
+        self.tutorial_output.insert(tk.END, "   - Type an expression in the 'Enter Expression Manually' field (e.g., Ψ = ∴ + ◐).\n", "text")
+        self.tutorial_output.insert(tk.END, "   - Click 'Interpret Manual' to see the result.\n\n", "text")
+        self.tutorial_output.insert(tk.END, "3. Simulate a Signal:\n", "section")
+        self.tutorial_output.insert(tk.END, "   - Select a signal (e.g., Wow!) from the 'Simulate a Signal' dropdown.\n", "text")
+        self.tutorial_output.insert(tk.END, "   - Click 'Run Signal' to see the simulation in the 'Signals' tab.\n\n", "text")
+        self.tutorial_output.insert(tk.END, "4. Explain a Phenomenon:\n", "section")
+        self.tutorial_output.insert(tk.END, "   - Select a phenomenon (e.g., Big Bang) from the 'Explain a Phenomenon' dropdown.\n", "text")
+        self.tutorial_output.insert(tk.END, "   - Click 'Explain Phenomenon' to see the explanation in the 'Phenomena' tab.\n\n", "text")
+        self.tutorial_output.insert(tk.END, "5. Manage Favorites:\n", "section")
+        self.tutorial_output.insert(tk.END, "   - Double-click a phenomenon or signal in the 'List Phenomena' or 'List Signals' windows to add/remove it from favorites.\n", "text")
+        self.tutorial_output.insert(tk.END, "   - View your favorites in the 'Favorites' tab.\n", "text")
+        self.tutorial_output.insert(tk.END, "   - Select a favorite from the 'Favorites' dropdown and click 'Run Favorite' to execute it.\n\n", "text")
+        self.tutorial_output.insert(tk.END, "6. View the Mandala:\n", "section")
+        self.tutorial_output.insert(tk.END, "   - Click 'View Mandala' to see a visual representation of the symbols.\n\n", "text")
+        self.tutorial_output.insert(tk.END, "7. Explore History:\n", "section")
+        self.tutorial_output.insert(tk.END, "   - After interpreting expressions, they appear in the 'Expression History' dropdown.\n", "text")
+        self.tutorial_output.insert(tk.END, "   - Select an expression and click 'Run Selected' to re-run it.\n\n", "text")
+        self.tutorial_output.insert(tk.END, "Enjoy exploring the universe through shapes!\n", "text")
+        self.tutorial_output.config(state="disabled")
 
         # Output controls
         self.clear_output_button = ttk.Button(self.output_frame, text="Clear Output", command=self.clear_output, style="Custom.TButton")
@@ -238,7 +265,7 @@ class AlienSymbolicInterpreterGUI:
             btn.grid(row=row, column=col, padx=2, pady=2)
             self.symbol_buttons[symbol] = btn
             col += 1
-            if col > 4:  # 5 symbols per row
+            if col > 4:
                 col = 0
                 row += 1
 
@@ -257,7 +284,7 @@ class AlienSymbolicInterpreterGUI:
         self.interpret_build_button = ttk.Button(self.build_frame, text="Interpret Built Expression", command=self.interpret_built_expression, style="Custom.TButton")
         self.interpret_build_button.grid(row=4, column=0, pady=5)
 
-        # Simulate a Signal (movido para build_frame)
+        # Simulate a Signal
         self.signal_label = ttk.Label(self.build_frame, text="Simulate a Signal:")
         self.signal_label.grid(row=5, column=0, pady=5)
         self.signal_var = tk.StringVar()
@@ -266,7 +293,7 @@ class AlienSymbolicInterpreterGUI:
         self.run_signal_button = ttk.Button(self.build_frame, text="Run Signal", command=self.run_signal, style="Custom.TButton")
         self.run_signal_button.grid(row=7, column=0, pady=5)
 
-        # Explain a Phenomenon (movido para build_frame)
+        # Explain a Phenomenon
         self.phenomenon_label = ttk.Label(self.build_frame, text="Explain a Phenomenon:")
         self.phenomenon_label.grid(row=8, column=0, pady=5)
         self.phenomenon_var = tk.StringVar()
@@ -279,91 +306,66 @@ class AlienSymbolicInterpreterGUI:
         self.controls_frame = ttk.Frame(self.main_frame)
         self.controls_frame.grid(row=0, column=2, padx=10, pady=5, sticky=(tk.N))
 
-        # Dark Mode Toggle
-        self.dark_mode_var = tk.BooleanVar(value=self.dark_mode)
-        self.dark_mode_check = ttk.Checkbutton(self.controls_frame, text="Dark Mode", variable=self.dark_mode_var, command=self.toggle_dark_mode)
-        self.dark_mode_check.grid(row=0, column=0, pady=5, sticky=(tk.W, tk.E))
-
         # List buttons
         self.symbols_button = ttk.Button(self.controls_frame, text="List Symbols", command=self.list_symbols, style="Custom.TButton")
-        self.symbols_button.grid(row=1, column=0, pady=5, sticky=(tk.W, tk.E))
+        self.symbols_button.grid(row=0, column=0, pady=5, sticky=(tk.W, tk.E))
         self.phenomena_button = ttk.Button(self.controls_frame, text="List Phenomena", command=self.list_phenomena, style="Custom.TButton")
-        self.phenomena_button.grid(row=2, column=0, pady=5, sticky=(tk.W, tk.E))
+        self.phenomena_button.grid(row=1, column=0, pady=5, sticky=(tk.W, tk.E))
         self.signals_button = ttk.Button(self.controls_frame, text="List Signals", command=self.list_signals, style="Custom.TButton")
-        self.signals_button.grid(row=3, column=0, pady=5, sticky=(tk.W, tk.E))
+        self.signals_button.grid(row=2, column=0, pady=5, sticky=(tk.W, tk.E))
 
         # View Mandala
         self.mandala_button = ttk.Button(self.controls_frame, text="View Mandala", command=self.view_mandala, style="Custom.TButton")
-        self.mandala_button.grid(row=4, column=0, pady=5, sticky=(tk.W, tk.E))
+        self.mandala_button.grid(row=3, column=0, pady=5, sticky=(tk.W, tk.E))
 
         # Tutorial
         self.tutorial_button = ttk.Button(self.controls_frame, text="Tutorial", command=self.show_tutorial, style="Custom.TButton")
-        self.tutorial_button.grid(row=5, column=0, pady=5, sticky=(tk.W, tk.E))
+        self.tutorial_button.grid(row=4, column=0, pady=5, sticky=(tk.W, tk.E))
 
         # Manual Expression Input
         self.expression_label = ttk.Label(self.controls_frame, text="Enter Expression Manually:")
-        self.expression_label.grid(row=6, column=0, pady=5)
+        self.expression_label.grid(row=5, column=0, pady=5)
         self.expression_entry = ttk.Entry(self.controls_frame, width=30)
-        self.expression_entry.grid(row=7, column=0, pady=5)
+        self.expression_entry.grid(row=6, column=0, pady=5)
         self.interpret_button = ttk.Button(self.controls_frame, text="Interpret Manual", command=self.interpret_expression, style="Custom.TButton")
-        self.interpret_button.grid(row=8, column=0, pady=5, sticky=(tk.W, tk.E))
+        self.interpret_button.grid(row=7, column=0, pady=5, sticky=(tk.W, tk.E))
 
         # Expression History
         self.history_label = ttk.Label(self.controls_frame, text="Expression History:")
-        self.history_label.grid(row=9, column=0, pady=5)
+        self.history_label.grid(row=8, column=0, pady=5)
         self.history_var = tk.StringVar()
         self.history_dropdown = ttk.Combobox(self.controls_frame, textvariable=self.history_var, values=["(No history yet)"], width=27, state="readonly")
-        self.history_dropdown.grid(row=10, column=0, pady=5)
+        self.history_dropdown.grid(row=9, column=0, pady=5)
         self.history_button = ttk.Button(self.controls_frame, text="Run Selected", command=self.run_history_expression, style="Custom.TButton")
-        self.history_button.grid(row=11, column=0, pady=5, sticky=(tk.W, tk.E))
+        self.history_button.grid(row=10, column=0, pady=5, sticky=(tk.W, tk.E))
 
         # Favorites
         self.favorites_label = ttk.Label(self.controls_frame, text="Favorites:")
-        self.favorites_label.grid(row=12, column=0, pady=5)
+        self.favorites_label.grid(row=11, column=0, pady=5)
         self.favorites_var = tk.StringVar()
         self.favorites_dropdown = ttk.Combobox(self.controls_frame, textvariable=self.favorites_var, values=self.get_favorites_list(), width=27, state="readonly")
-        self.favorites_dropdown.grid(row=13, column=0, pady=5)
+        self.favorites_dropdown.grid(row=12, column=0, pady=5)
         self.favorites_button = ttk.Button(self.controls_frame, text="Run Favorite", command=self.run_favorite, style="Custom.TButton")
-        self.favorites_button.grid(row=14, column=0, pady=5, sticky=(tk.W, tk.E))
+        self.favorites_button.grid(row=13, column=0, pady=5, sticky=(tk.W, tk.E))
 
-        # Apply styles *after* all widgets are created
+        # Apply styles
         self.configure_styles()
 
     def configure_styles(self):
-        if self.dark_mode:
-            # Dark mode (cosmic theme)
-            self.root.configure(bg="#1a1a2e")
-            self.style.configure("TFrame", background="#1a1a2e")
-            self.style.configure("TLabel", background="#1a1a2e", foreground="white")
-            self.style.configure("Custom.TButton", background="#16213e", foreground="white", bordercolor="#16213e", focusthickness=0)
-            self.style.map("Custom.TButton", background=[("active", "#0f3460")], foreground=[("active", "white")])
-            self.style.configure("TEntry", fieldbackground="#0f3460", foreground="white")
-            self.style.configure("TCombobox", fieldbackground="#0f3460", foreground="white")
-            self.style.map("TCombobox", fieldbackground=[("readonly", "#0f3460")], selectbackground=[("readonly", "#0f3460")])
-            self.style.configure("TCheckbutton", background="#1a1a2e", foreground="white")
-            self.expressions_output.configure(bg="#0f3460", fg="white", insertbackground="white")
-            self.signals_output.configure(bg="#0f3460", fg="white", insertbackground="white")
-            self.phenomena_output.configure(bg="#0f3460", fg="white", insertbackground="white")
-            self.favorites_output.configure(bg="#0f3460", fg="white", insertbackground="white")
-        else:
-            # Light mode
-            self.root.configure(bg="white")
-            self.style.configure("TFrame", background="white")
-            self.style.configure("TLabel", background="white", foreground="black")
-            self.style.configure("Custom.TButton", background="#e0e0e0", foreground="black", bordercolor="#e0e0e0", focusthickness=0)
-            self.style.map("Custom.TButton", background=[("active", "#d0d0d0")], foreground=[("active", "black")])
-            self.style.configure("TEntry", fieldbackground="white", foreground="black")
-            self.style.configure("TCombobox", fieldbackground="white", foreground="black")
-            self.style.map("TCombobox", fieldbackground=[("readonly", "white")], selectbackground=[("readonly", "white")])
-            self.style.configure("TCheckbutton", background="white", foreground="black")
-            self.expressions_output.configure(bg="white", fg="black", insertbackground="black")
-            self.signals_output.configure(bg="white", fg="black", insertbackground="black")
-            self.phenomena_output.configure(bg="white", fg="black", insertbackground="black")
-            self.favorites_output.configure(bg="white", fg="black", insertbackground="black")
-
-    def toggle_dark_mode(self):
-        self.dark_mode = self.dark_mode_var.get()
-        self.configure_styles()
+        self.root.configure(bg="#1a1a2e")
+        self.style.configure("TFrame", background="#1a1a2e")
+        self.style.configure("TLabel", background="#1a1a2e", foreground="white")
+        self.style.configure("Custom.TButton", background="#16213e", foreground="white", bordercolor="#16213e", focusthickness=0)
+        self.style.map("Custom.TButton", background=[("active", "#0f3460")], foreground=[("active", "white")])
+        self.style.configure("TEntry", fieldbackground="#0f3460", foreground="white")
+        self.style.configure("TCombobox", fieldbackground="#0f3460", foreground="white")
+        self.style.map("TCombobox", fieldbackground=[("readonly", "#0f3460")], selectbackground=[("readonly", "#0f3460")])
+        self.style.configure("TCheckbutton", background="#1a1a2e", foreground="white")
+        self.expressions_output.configure(bg="#0f3460", fg="white", insertbackground="white")
+        self.signals_output.configure(bg="#0f3460", fg="white", insertbackground="white")
+        self.phenomena_output.configure(bg="#0f3460", fg="white", insertbackground="white")
+        self.favorites_output.configure(bg="#0f3460", fg="white", insertbackground="white")
+        self.tutorial_output.configure(bg="#0f3460", fg="white", insertbackground="white")
 
     def add_symbol(self, symbol):
         self.current_expression.append(symbol)
@@ -377,22 +379,22 @@ class AlienSymbolicInterpreterGUI:
         if not self.current_expression:
             self.expressions_output.insert(tk.END, "[Error] No expression to interpret.\n", "error")
             return
-        expression = " ".join(self.current_expression)
-        self.context = {}  # Reset context for a new interpretation
+        expression = " ".join(self.current_expression).strip()
+        self.context = {}
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         result = interpret(expression, self.context)
         self.expressions_output.insert(tk.END, f"[{timestamp}] >>> {expression}\n{result}\n", "equation")
         self.expressions_output.insert(tk.END, "-" * 50 + "\n", "separator")
         self.expression_history.append(expression)
         self.history_dropdown.config(values=self.expression_history)
-        self.check_phenomena(expression)
+        self.check_phenomena(expression.strip())
 
     def interpret_expression(self):
         expression = self.expression_entry.get().strip()
         if not expression:
             self.expressions_output.insert(tk.END, "[Error] Please enter an expression.\n", "error")
             return
-        self.context = {}  # Reset context for a new interpretation
+        self.context = {}
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         result = interpret(expression, self.context)
         self.expressions_output.insert(tk.END, f"[{timestamp}] >>> {expression}\n{result}\n", "equation")
@@ -406,7 +408,7 @@ class AlienSymbolicInterpreterGUI:
         if not selected_expression or selected_expression == "(No history yet)":
             self.expressions_output.insert(tk.END, "[Error] No expression selected from history.\n", "error")
             return
-        self.context = {}  # Reset context for a new interpretation
+        self.context = {}
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         result = interpret(selected_expression, self.context)
         self.expressions_output.insert(tk.END, f"[{timestamp}] >>> {selected_expression}\n{result}\n", "equation")
@@ -427,7 +429,7 @@ class AlienSymbolicInterpreterGUI:
             self.signals_output.insert(tk.END, "[Error] Please select a signal to simulate.\n", "error")
             return
         signal_expressions = signals.get(signal_name, [])
-        self.context = {}  # Reset context for a new simulation
+        self.context = {}
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.signals_output.insert(tk.END, f"[{timestamp}] Simulating Signal: {signal_name}\n", "equation")
         for expr in signal_expressions:
@@ -450,8 +452,8 @@ class AlienSymbolicInterpreterGUI:
         popup = tk.Toplevel(self.root)
         popup.title("List of Symbols")
         popup.geometry("400x400")
-        popup.configure(bg="#1a1a2e" if self.dark_mode else "white")
-        text = scrolledtext.ScrolledText(popup, width=50, height=20, wrap=tk.WORD, bg="#0f3460" if self.dark_mode else "white", fg="white" if self.dark_mode else "black")
+        popup.configure(bg="#1a1a2e")
+        text = scrolledtext.ScrolledText(popup, width=50, height=20, wrap=tk.WORD, bg="#0f3460", fg="white")
         text.pack(pady=10)
         for symbol in symbols.keys():
             self.context = {}
@@ -464,13 +466,13 @@ class AlienSymbolicInterpreterGUI:
         popup = tk.Toplevel(self.root)
         popup.title("List of Phenomena")
         popup.geometry("600x400")
-        popup.configure(bg="#1a1a2e" if self.dark_mode else "white")
-        text = scrolledtext.ScrolledText(popup, width=70, height=20, wrap=tk.WORD, bg="#0f3460" if self.dark_mode else "white", fg="white" if self.dark_mode else "black")
+        popup.configure(bg="#1a1a2e")
+        text = scrolledtext.ScrolledText(popup, width=70, height=20, wrap=tk.WORD, bg="#0f3460", fg="white")
         text.pack(pady=10)
         for phenomenon, (symbolic_expression, explanation) in phenomena.items():
             favorite_marker = "★" if phenomenon in self.favorites["phenomena"] else "☆"
             text.insert(tk.END, f"{favorite_marker} {phenomenon}: {symbolic_expression}\nExplanation: {explanation}\n\n")
-        text.config(state="normal")  # Allow clicking to toggle favorites
+        text.config(state="normal")
         text.tag_configure("phenomenon", font=("Arial", 10, "bold"))
         text.bind("<Double-1>", lambda event: self.toggle_favorite_phenomenon(text, event))
         ttk.Button(popup, text="Close", command=popup.destroy, style="Custom.TButton").pack(pady=5)
@@ -479,20 +481,20 @@ class AlienSymbolicInterpreterGUI:
         popup = tk.Toplevel(self.root)
         popup.title("List of Signals")
         popup.geometry("400x400")
-        popup.configure(bg="#1a1a2e" if self.dark_mode else "white")
-        text = scrolledtext.ScrolledText(popup, width=50, height=20, wrap=tk.WORD, bg="#0f3460" if self.dark_mode else "white", fg="white" if self.dark_mode else "black")
+        popup.configure(bg="#1a1a2e")
+        text = scrolledtext.ScrolledText(popup, width=50, height=20, wrap=tk.WORD, bg="#0f3460", fg="white")
         text.pack(pady=10)
         for signal, expressions in signals.items():
-            favorite_marker = "★" if signal in self.ffavorites["signals"] else "☆"
+            favorite_marker = "★" if signal in self.favorites["signals"] else "☆"
             text.insert(tk.END, f"{favorite_marker} {signal}: {', '.join(expressions)}\n")
-        text.config(state="normal")  # Allow clicking to toggle favorites
+        text.config(state="normal")
         text.bind("<Double-1>", lambda event: self.toggle_favorite_signal(text, event))
         ttk.Button(popup, text="Close", command=popup.destroy, style="Custom.TButton").pack(pady=5)
 
     def toggle_favorite_phenomenon(self, text_widget, event):
         index = text_widget.index(f"{event.x},{event.y} linestart")
         line = text_widget.get(index, f"{index} lineend")
-        phenomenon_name = line.split(":")[0].strip()[2:]  # Remove the ★/☆ marker
+        phenomenon_name = line.split(":")[0].strip()[2:]
         if phenomenon_name in phenomena:
             if phenomenon_name in self.favorites["phenomena"]:
                 self.favorites["phenomena"].remove(phenomenon_name)
@@ -501,7 +503,6 @@ class AlienSymbolicInterpreterGUI:
             self.save_favorites()
             self.update_favorites_output()
             self.favorites_dropdown.config(values=self.get_favorites_list())
-            # Update the list in the popup
             text_widget.delete("1.0", tk.END)
             for phenomenon, (symbolic_expression, explanation) in phenomena.items():
                 favorite_marker = "★" if phenomenon in self.favorites["phenomena"] else "☆"
@@ -510,7 +511,7 @@ class AlienSymbolicInterpreterGUI:
     def toggle_favorite_signal(self, text_widget, event):
         index = text_widget.index(f"{event.x},{event.y} linestart")
         line = text_widget.get(index, f"{index} lineend")
-        signal_name = line.split(":")[0].strip()[2:]  # Remove the ★/☆ marker
+        signal_name = line.split(":")[0].strip()[2:]
         if signal_name in signals:
             if signal_name in self.favorites["signals"]:
                 self.favorites["signals"].remove(signal_name)
@@ -519,7 +520,6 @@ class AlienSymbolicInterpreterGUI:
             self.save_favorites()
             self.update_favorites_output()
             self.favorites_dropdown.config(values=self.get_favorites_list())
-            # Update the list in the popup
             text_widget.delete("1.0", tk.END)
             for signal, expressions in signals.items():
                 favorite_marker = "★" if signal in self.favorites["signals"] else "☆"
@@ -605,72 +605,22 @@ class AlienSymbolicInterpreterGUI:
         popup = tk.Toplevel(self.root)
         popup.title("Symbolic Mandala")
         popup.geometry("400x400")
-        popup.configure(bg="#1a1a2e" if self.dark_mode else "white")
-        canvas = tk.Canvas(popup, width=300, height=300, bg="#0f3460" if self.dark_mode else "white", highlightthickness=0)
+        popup.configure(bg="#1a1a2e")
+        canvas = tk.Canvas(popup, width=300, height=300, bg="#0f3460", highlightthickness=0)
         canvas.pack(pady=20)
         num_symbols = len(symbols)
-        radius = 100
+        radius = 120
         center_x, center_y = 150, 150
         for i, symbol in enumerate(symbols.keys()):
-            angle = (2 * math.pi * i) / num_symbols
+            angle = (2 * math.pi * i) / num_symbols - (math.pi / 2)
             x = center_x + radius * math.cos(angle)
             y = center_y + radius * math.sin(angle)
-            canvas.create_text(x, y, text=symbol, font=("Arial", 12), fill="white" if self.dark_mode else "black")
+            canvas.create_text(x, y, text=symbol, font=("Arial", 14), fill="white")
+        canvas.create_oval(center_x - 10, center_y - 10, center_x + 10, center_y + 10, fill="#16213e", outline="white")
         ttk.Button(popup, text="Close", command=popup.destroy, style="Custom.TButton").pack(pady=5)
 
     def show_tutorial(self):
-        tutorial_content = (
-            "# Alien Symbolic Interpreter Tutorial\n\n"
-            "Welcome to the Alien Symbolic Interpreter!\n\n"
-            "## Follow these steps to explore the language of shapes:\n\n"
-            "1. **Build an Expression**:\n"
-            "   - Click the symbols in the center panel to build an expression (e.g., Ψ + ∴ = ◐).\n"
-            "   - Use the operator buttons (+, ×, =, →, (, )) to add operators.\n"
-            "   - Click 'Interpret Built Expression' to see the result in the 'Expressions' tab.\n"
-            "   - If the expression matches a known phenomenon, it will also appear in the 'Phenomena' tab.\n\n"
-            "2. **Enter an Expression Manually**:\n"
-            "   - Type an expression in the 'Enter Expression Manually' field (e.g., Ψ = ∴ + ◐).\n"
-            "   - Click 'Interpret Manual' to see the result.\n\n"
-            "3. **Simulate a Signal**:\n"
-            "   - Select a signal (e.g., Wow!) from the 'Simulate a Signal' dropdown.\n"
-            "   - Click 'Run Signal' to see the simulation in the 'Signals' tab.\n\n"
-            "4. **Explain a Phenomenon**:\n"
-            "   - Select a phenomenon (e.g., Big Bang) from the 'Explain a Phenomenon' dropdown.\n"
-            "   - Click 'Explain Phenomenon' to see the explanation in the 'Phenomena' tab.\n\n"
-            "5. **Manage Favorites**:\n"
-            "   - Double-click a phenomenon or signal in the 'List Phenomena' or 'List Signals' windows to add/remove it from favorites.\n"
-            "   - View your favorites in the 'Favorites' tab.\n"
-            "   - Select a favorite from the 'Favorites' dropdown and click 'Run Favorite' to execute it.\n\n"
-            "6. **View the Mandala**:\n"
-            "   - Click 'View Mandala' to see a visual representation of the symbols.\n\n"
-            "7. **Explore History**:\n"
-            "   - After interpreting expressions, they appear in the 'Expression History' dropdown.\n"
-            "   - Select an expression and click 'Run Selected' to re-run it.\n\n"
-            "Enjoy exploring the universe through shapes!"
-        )
-
-        # Salvar o tutorial como tutorial.md
-        tutorial_path = os.path.join(os.path.dirname(__file__), "tutorial.md")
-        with open(tutorial_path, "w", encoding="utf-8") as f:
-            f.write(tutorial_content)
-
-        # Exibir mensagem informando que o tutorial foi salvo
-        popup = tk.Toplevel(self.root)
-        popup.title("Tutorial Saved")
-        popup.geometry("400x150")
-        popup.configure(bg="#1a1a2e" if self.dark_mode else "white")
-
-        message = ttk.Label(
-            popup,
-            text=f"Tutorial has been saved as 'tutorial.md' in:\n{tutorial_path}\n\nOpen it with any text editor or Markdown viewer.",
-            wraplength=350,
-            background="#1a1a2e" if self.dark_mode else "white",
-            foreground="white" if self.dark_mode else "black"
-        )
-        message.pack(pady=20)
-
-        close_button = ttk.Button(popup, text="Close", command=popup.destroy, style="Custom.TButton")
-        close_button.pack(pady=10)
+        self.output_notebook.select(self.tutorial_tab)
 
 # Run the application
 if __name__ == "__main__":
