@@ -38,7 +38,7 @@ phenomena = {
     "Singularity (Black Hole)": ("● × ∅ = ꩜", "Totality collapses into nothingness, generating a dimensional fold."),
     "Hawking Radiation": ("꩜ ⇌ (✧ + ∅)", "The fold oscillates between collapse and void, releasing energy."),
     "Cosmic Inflation": ("∅ + ϕ = ⇧ × ∞", "From the void, growth drives expansion into infinity."),
-    "Black Hole Collision": ("( ꩜ + ꩜ ) → ⬠ ⇌ ⇧", "Two folds merge, vibrating in a network and expanding."),
+    "Black Hole Collision": ("(꩜ + ꩜) → ⬠ ⇌ ⇧", "Two folds merge, vibrating in a network and expanding."),
     "Holographic Principle": ("● ⇌ ⬠ = Ω", "Totality is reflected in a network, forming reality."),
     "Casimir Effect": ("∅ × (◐ + ◐) = ⇂", "The void between nearby dualities generates compression."),
     "Galaxy Formation": ("ϕ × ⬠ = ✧ × ⇧", "Growth in a network collapses locally and expands globally."),
@@ -65,46 +65,31 @@ signals = {
 
 # Symbolic parser with context and conditionals
 def interpret(expression, context):
-    # Processar símbolos individualmente primeiro
-    tokens = expression.replace("=", " = ").replace("→", " → ").split()
+    if expression.startswith("if"):
+        condition = expression[3:].strip(":")
+        left, op, right = condition.split()
+        left_val = context.get(left, None)
+        right_val = context.get(right, None)
+        condition_met = (left_val == right_val if op == "==" else left_val != right_val)
+        return f"Condition {left} {op} {right} => {condition_met}"
+
+    if "→" in expression:
+        origin, target = expression.split("→")
+        origin = origin.strip()
+        target = target.strip()
+        context[target] = context.get(origin, None)
+        return f"Transition: {origin} → {target} => {context.get(target)}"
+
+    tokens = expression.replace("=", " = ").split()
     output = []
-    i = 0
-    while i < len(tokens):
-        token = tokens[i]
+    for token in tokens:
         if token in symbols:
             symbols[token](context)
             output.append(f"{token}: {context.get(token)}")
-        elif token == "→":
-            # Realizar a transição
-            if i > 0 and i < len(tokens) - 1:
-                origin = " ".join(tokens[:i]).strip()
-                target = " ".join(tokens[i+1:]).strip()
-                # Interpretar os símbolos da origem e do destino
-                origin_tokens = origin.split()
-                target_tokens = target.split()
-                origin_output = []
-                target_output = []
-                for ot in origin_tokens:
-                    if ot in symbols:
-                        symbols[ot](context)
-                        origin_output.append(f"{ot}: {context.get(ot)}")
-                    else:
-                        origin_output.append(ot)
-                for tt in target_tokens:
-                    if tt in symbols:
-                        symbols[tt](context)
-                        target_output.append(f"{tt}: {context.get(tt)}")
-                    else:
-                        target_output.append(tt)
-                # Realizar a transição
-                context[target] = context.get(origin, None)
-                output.append(f"Transition: {' '.join(origin_output)} → {' '.join(target_output)} => {context.get(target)}")
-            i += 1
         elif token == "=":
             output.append("=")
         else:
             output.append(token)
-        i += 1
     return " ".join(output)
 
 # GUI Application
@@ -145,7 +130,6 @@ class AlienSymbolicInterpreterGUI:
         self.expressions_output.tag_configure("equation", foreground="lightblue")
         self.expressions_output.tag_configure("error", foreground="red")
         self.expressions_output.tag_configure("separator", foreground="gray")
-        self.expressions_output.tag_configure("result", foreground="green")
         self.expressions_output.insert(tk.END, "Expression results will appear here.\n\n")
 
         # Signals Tab
@@ -156,7 +140,6 @@ class AlienSymbolicInterpreterGUI:
         self.signals_output.tag_configure("equation", foreground="lightblue")
         self.signals_output.tag_configure("error", foreground="red")
         self.signals_output.tag_configure("separator", foreground="gray")
-        self.signals_output.tag_configure("result", foreground="green")
         self.signals_output.insert(tk.END, "Signal simulation results will appear here.\n\n")
 
         # Phenomena Tab
@@ -168,7 +151,6 @@ class AlienSymbolicInterpreterGUI:
         self.phenomena_output.tag_configure("error", foreground="red")
         self.phenomena_output.tag_configure("separator", foreground="gray")
         self.phenomena_output.tag_configure("phenomenon", font=("Arial", 10, "bold"))
-        self.phenomena_output.tag_configure("result", foreground="green")
         self.phenomena_output.insert(tk.END, "Phenomena explanations will appear here.\n\n")
 
         # Favorites Tab
@@ -178,7 +160,6 @@ class AlienSymbolicInterpreterGUI:
         self.favorites_output.grid(row=0, column=0, pady=5)
         self.favorites_output.tag_configure("info", foreground="yellow")
         self.favorites_output.tag_configure("separator", foreground="gray")
-        self.favorites_output.tag_configure("result", foreground="green")
         self.favorites_output.insert(tk.END, "Your favorite phenomena and signals will appear here.\n")
         self.favorites_output.insert(tk.END, "Double-click items in 'List Phenomena' or 'List Signals' to add/remove favorites.\n")
         self.favorites_output.insert(tk.END, "Select a favorite from the dropdown and click 'Run Favorite' to execute.\n\n")
@@ -283,19 +264,15 @@ class AlienSymbolicInterpreterGUI:
         self.history_dropdown.grid(row=9, column=0, pady=5)
         self.history_button = ttk.Button(self.controls_frame, text="Run Selected", command=self.run_history_expression, style="Custom.TButton")
         self.history_button.grid(row=10, column=0, pady=5, sticky=(tk.W, tk.E))
-        # Botão para limpar o histórico
-        self.clear_history_button = ttk.Button(self.controls_frame, text="Clear History", command=self.clear_history, style="Custom.TButton")
-        self.clear_history
-        self.clear_history_button.grid(row=11, column=0, pady=5, sticky=(tk.W, tk.E))
 
         # Favorites
         self.favorites_label = ttk.Label(self.controls_frame, text="Favorites:")
-        self.favorites_label.grid(row=12, column=0, pady=5)
+        self.favorites_label.grid(row=11, column=0, pady=5)
         self.favorites_var = tk.StringVar()
         self.favorites_dropdown = ttk.Combobox(self.controls_frame, textvariable=self.favorites_var, values=self.get_favorites_list(), width=27, state="readonly")
-        self.favorites_dropdown.grid(row=13, column=0, pady=5)
+        self.favorites_dropdown.grid(row=12, column=0, pady=5)
         self.favorites_button = ttk.Button(self.controls_frame, text="Run Favorite", command=self.run_favorite, style="Custom.TButton")
-        self.favorites_button.grid(row=14, column=0, pady=5, sticky=(tk.W, tk.E))
+        self.favorites_button.grid(row=13, column=0, pady=5, sticky=(tk.W, tk.E))
 
         # Apply styles *after* all widgets are created
         self.configure_styles()
@@ -339,162 +316,339 @@ class AlienSymbolicInterpreterGUI:
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     def check_phenomenon(self, expression):
-        # Normalizar a expressão para comparação
-        normalized_expression = expression.replace(" ", "")
+        # Check if the expression matches any phenomenon
         for pheno, (eq, meaning) in phenomena.items():
-            normalized_eq = eq.replace(" ", "")
-            if normalized_expression == normalized_eq:
-                return pheno, meaning
-        return None, None
+            if expression == eq:
+                self.phenomena_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
+                self.phenomena_output.insert(tk.END, f"{pheno}\n", "phenomenon")
+                self.phenomena_output.insert(tk.END, f"{eq}\n", "equation")
+                self.phenomena_output.insert(tk.END, f"→ {meaning}\n", "result")
+                self.phenomena_output.insert(tk.END, "---\n", "separator")
+                self.phenomena_output.see(tk.END)
+                break
 
     def interpret_built_expression(self):
         if not self.current_expression:
-            self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] >>> (No expression to interpret)\n", "error")
+            self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
+            self.expressions_output.insert(tk.END, "Please build an expression using the symbols above.\n", "error")
             self.expressions_output.insert(tk.END, "---\n", "separator")
             return
-
-        expression = " ".join(self.current_expression)
-        self.context = {}  # Reset context for new interpretation
-        try:
-            result = interpret(expression, self.context)
-            self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] >>> {expression}\n", "equation")
-            self.expressions_output.insert(tk.END, f"{result}\n", "result")
-            # Check for matching phenomenon
-            pheno, meaning = self.check_phenomenon(expression)
-            if pheno:
-                self.expressions_output.insert(tk.END, f"Phenomenon Detected: {pheno}\n", "phenomenon")
-                self.expressions_output.insert(tk.END, f"Meaning: {meaning}\n", "result")
-            self.expressions_output.insert(tk.END, "---\n", "separator")
-            # Add to history
-            if expression not in self.expression_history:
-                self.expression_history.append(expression)
-                self.history_dropdown["values"] = self.expression_history if self.expression_history else ["(No history yet)"]
-        except Exception as e:
-            self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] >>> {expression}\n", "equation")
-            self.expressions_output.insert(tk.END, f"Error: {str(e)}\n", "error")
-            self.expressions_output.insert(tk.END, "---\n", "separator")
+        expression = " ".join(self.current_expression).strip()  # Normalizar a expressão
+        self.context = {}  # Resetar o contexto para cada nova interpretação
+        result = interpret(expression, self.context)
+        self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
+        self.expressions_output.insert(tk.END, f">>> {expression}\n", "equation")
+        self.expressions_output.insert(tk.END, f"{result}\n", "result")
+        self.expressions_output.insert(tk.END, "---\n", "separator")
+        self.expressions_output.see(tk.END)
+        self.expression_history.append(expression)
+        self.history_dropdown["values"] = self.expression_history
+        # Check if the expression matches a phenomenon
+        self.check_phenomenon(expression)
 
     def interpret_expression(self):
         expression = self.expression_entry.get().strip()
         if not expression:
-            self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] >>> (No expression entered)\n", "error")
+            self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
+            self.expressions_output.insert(tk.END, "Please enter a symbolic expression.\n", "error")
             self.expressions_output.insert(tk.END, "---\n", "separator")
             return
-
-        self.context = {}  # Reset context for new interpretation
-        try:
-            result = interpret(expression, self.context)
-            self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] >>> {expression}\n", "equation")
-            self.expressions_output.insert(tk.END, f"{result}\n", "result")
-            # Check for matching phenomenon
-            pheno, meaning = self.check_phenomenon(expression)
-            if pheno:
-                self.expressions_output.insert(tk.END, f"Phenomenon Detected: {pheno}\n", "phenomenon")
-                self.expressions_output.insert(tk.END, f"Meaning: {meaning}\n", "result")
-            self.expressions_output.insert(tk.END, "---\n", "separator")
-            # Add to history
-            if expression not in self.expression_history:
-                self.expression_history.append(expression)
-                self.history_dropdown["values"] = self.expression_history if self.expression_history else ["(No history yet)"]
-        except Exception as e:
-            self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] >>> {expression}\n", "equation")
-            self.expressions_output.insert(tk.END, f"Error: {str(e)}\n", "error")
-            self.expressions_output.insert(tk.END, "---\n", "separator")
-
-    def clear_history(self):
-        self.expression_history = []
-        self.history_dropdown["values"] = ["(No history yet)"]
-        self.history_var.set("(No history yet)")
+        self.context = {}  # Resetar o contexto
+        result = interpret(expression, self.context)
+        self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
+        self.expressions_output.insert(tk.END, f">>> {expression}\n", "equation")
+        self.expressions_output.insert(tk.END, f"{result}\n", "result")
+        self.expressions_output.insert(tk.END, "---\n", "separator")
+        self.expressions_output.see(tk.END)
+        self.expression_history.append(expression)
+        self.history_dropdown["values"] = self.expression_history
+        # Check if the expression matches a phenomenon
+        self.check_phenomenon(expression)
 
     def run_history_expression(self):
         expression = self.history_var.get()
         if not expression or expression == "(No history yet)":
-            self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] >>> (No history selected)\n", "error")
+            self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
+            self.expressions_output.insert(tk.END, "Please select an expression from the history.\n", "error")
             self.expressions_output.insert(tk.END, "---\n", "separator")
             return
-
-        self.context = {}  # Reset context for new interpretation
-        try:
-            result = interpret(expression, self.context)
-            self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] >>> {expression}\n", "equation")
-            self.expressions_output.insert(tk.END, f"{result}\n", "result")
-            # Check for matching phenomenon
-            pheno, meaning = self.check_phenomenon(expression)
-            if pheno:
-                self.expressions_output.insert(tk.END, f"Phenomenon Detected: {pheno}\n",
-                                                               self.expressions_output.insert(tk.END, f"Meaning: {meaning}\n", "result")
-            self.expressions_output.insert(tk.END, "---\n", "separator")
-        except Exception as e:
-            self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] >>> {expression}\n", "equation")
-            self.expressions_output.insert(tk.END, f"Error: {str(e)}\n", "error")
-            self.expressions_output.insert(tk.END, "---\n", "separator")
+        self.context = {}  # Resetar o contexto
+        result = interpret(expression, self.context)
+        self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
+        self.expressions_output.insert(tk.END, f">>> {expression}\n", "equation")
+        self.expressions_output.insert(tk.END, f"{result}\n", "result")
+        self.expressions_output.insert(tk.END, "---\n", "separator")
+        self.expressions_output.see(tk.END)
+        # Check if the expression matches a phenomenon
+        self.check_phenomenon(expression)
 
     def list_symbols(self):
-        self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] >>> Available Symbols:\n")
-        for symbol in symbols.keys():
-            self.context = {}  # Reset context for each symbol
-            symbols[symbol](self.context)
-            self.expressions_output.insert(tk.END, f"{symbol}: {self.context.get(symbol)}\n", "result")
-        self.expressions_output.insert(tk.END, "---\n", "separator")
+        popup = tk.Toplevel(self.root)
+        popup.title("Available Symbols")
+        popup.geometry("500x400")
+        popup.configure(bg="#1a1a2e")
+
+        tree = ttk.Treeview(popup, columns=("Symbol", "Meaning"), show="headings")
+        tree.heading("Symbol", text="Symbol")
+        tree.heading("Meaning", text="Meaning")
+        tree.column("Symbol", width=100, anchor="center")
+        tree.column("Meaning", width=350)
+
+        for symbol, func in symbols.items():
+            self.context = {}
+            func(self.context)
+            tree.insert("", tk.END, values=(symbol, self.context.get(symbol)), tags=("symbol",))
+        
+        tree.tag_configure("symbol", foreground="#00BFFF")
+        tree.pack(expand=True, fill="both", padx=10, pady=10)
 
     def list_phenomena(self):
-        self.phenomena_output.delete(1.0, tk.END)
-        self.phenomena_output.insert(tk.END, f"[{self.get_timestamp()}] >>> Available Phenomena:\n")
-        for pheno, (eq, meaning) in phenomena.items():
-            self.phenomena_output.insert(tk.END, f"{pheno}\n", "phenomenon")
-            self.phenomena_output.insert(tk.END, f"Equation: {eq}\n", "equation")
-            self.phenomena_output.insert(tk.END, f"Meaning: {meaning}\n", "result")
-            self.phenomena_output.insert(tk.END, "---\n", "separator")
+        popup = tk.Toplevel(self.root)
+        popup.title("Known Cosmic Phenomena")
+        popup.geometry("600x400")
+        popup.configure(bg="#1a1a2e")
+
+        tree = ttk.Treeview(popup, columns=("Phenomenon", "Equation", "Meaning", "Favorite"), show="headings")
+        tree.heading("Phenomenon", text="Phenomenon")
+        tree.heading("Equation", text="Equation")
+        tree.heading("Meaning", text="Meaning")
+        tree.heading("Favorite", text="Favorite")
+        tree.column("Phenomenon", width=200)
+        tree.column("Equation", width=150)
+        tree.column("Meaning", width=200)
+        tree.column("Favorite", width=50)
+
+        for name, (eq, meaning) in phenomena.items():
+            tree.insert("", tk.END, values=(name, eq, meaning, "Add" if name not in self.favorites["phenomena"] else "Remove"), tags=("phenomenon", name))
+        
+        tree.tag_configure("phenomenon", foreground="darkgreen")
+        tree.bind("<Double-1>", lambda event: self.toggle_favorite(event, "phenomena"))
+        tree.pack(expand=True, fill="both", padx=10, pady=10)
 
     def list_signals(self):
-        self.signals_output.delete(1.0, tk.END)
-        self.signals_output.insert(tk.END, f"[{self.get_timestamp()}] >>> Available Signals:\n")
-        for signal, expr_list in signals.items():
-            self.signals_output.insert(tk.END, f"{signal}: {', '.join(expr_list)}\n", "result")
-        self.signals_output.insert(tk.END, "---\n", "separator")
+        popup = tk.Toplevel(self.root)
+        popup.title("Available Signals")
+        popup.geometry("300x200")
+        popup.configure(bg="#1a1a2e")
+
+        tree = ttk.Treeview(popup, columns=("Signal", "Favorite"), show="headings")
+        tree.heading("Signal", text="Signal")
+        tree.heading("Favorite", text="Favorite")
+        tree.column("Signal", width=150, anchor="center")
+        tree.column("Favorite", width=50)
+
+        for name in signals:
+            tree.insert("", tk.END, values=(name, "Add" if name not in self.favorites["signals"] else "Remove"), tags=("signal", name))
+        
+        tree.bind("<Double-1>", lambda event: self.toggle_favorite(event, "signals"))
+        tree.pack(expand=True, fill="both", padx=10, pady=10)
+
+    def toggle_favorite(self, event, category):
+        tree = event.widget
+        item = tree.selection()[0]
+        name = tree.item(item, "values")[0]
+        if category == "phenomena":
+            if name in self.favorites["phenomena"]:
+                self.favorites["phenomena"].remove(name)
+                tree.set(item, "Favorite", "Add")
+            else:
+                self.favorites["phenomena"].append(name)
+                tree.set(item, "Favorite", "Remove")
+        elif category == "signals":
+            if name in self.favorites["signals"]:
+                self.favorites["signals"].remove(name)
+                tree.set(item, "Favorite", "Add")
+            else:
+                self.favorites["signals"].append(name)
+                tree.set(item, "Favorite", "Remove")
+        self.save_favorites()
+        self.favorites_dropdown["values"] = self.get_favorites_list()
+        self.update_favorites_output()
+
+    def update_favorites_output(self):
+        self.favorites_output.delete(1.0, tk.END)
+        self.favorites_output.insert(tk.END, "Your favorite phenomena and signals will appear here.\n")
+        self.favorites_output.insert(tk.END, "Double-click items in 'List Phenomena' or 'List Signals' to add/remove favorites.\n")
+        self.favorites_output.insert(tk.END, "Select a favorite from the dropdown and click 'Run Favorite' to execute.\n\n")
+        if self.favorites["phenomena"]:
+            self.favorites_output.insert(tk.END, "Favorite Phenomena:\n", "info")
+            for pheno in self.favorites["phenomena"]:
+                self.favorites_output.insert(tk.END, f"- {pheno}\n")
+        if self.favorites["signals"]:
+            self.favorites_output.insert(tk.END, "Favorite Signals:\n", "info")
+            for sig in self.favorites["signals"]:
+                self.favorites_output.insert(tk.END, f"- {sig}\n")
+        self.favorites_output.insert(tk.END, "---\n", "separator")
+
+    def load_favorites(self):
+        if os.path.exists("favorites.json"):
+            with open("favorites.json", "r") as f:
+                self.favorites = json.load(f)
+
+    def save_favorites(self):
+        with open("favorites.json", "w") as f:
+            json.dump(self.favorites, f)
+
+    def get_favorites_list(self):
+        favorites_list = []
+        for pheno in self.favorites["phenomena"]:
+            favorites_list.append(f"Phenomenon: {pheno}")
+        for sig in self.favorites["signals"]:
+            favorites_list.append(f"Signal: {sig}")
+        return favorites_list if favorites_list else ["(No favorites yet)"]
+
+    def run_favorite(self):
+        favorite = self.favorites_var.get()
+        if not favorite or favorite == "(No favorites yet)":
+            self.favorites_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
+            self.favorites_output.insert(tk.END, "Please select a favorite to run.\n", "error")
+            self.favorites_output.insert(tk.END, "---\n", "separator")
+            return
+        if favorite.startswith("Phenomenon: "):
+            pheno = favorite.replace("Phenomenon: ", "")
+            if pheno in phenomena:
+                eq, meaning = phenomena[pheno]
+                self.phenomena_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
+                self.phenomena_output.insert(tk.END, f"{pheno}\n", "phenomenon")
+                self.phenomena_output.insert(tk.END, f"{eq}\n", "equation")
+                self.phenomena_output.insert(tk.END, f"→ {meaning}\n", "result")
+                self.phenomena_output.insert(tk.END, "---\n", "separator")
+                self.phenomena_output.see(tk.END)
+                self.favorites_output.insert(tk.END, f"[{self.get_timestamp()}] Result shown in Phenomena tab.\n", "info")
+                self.favorites_output.insert(tk.END, "---\n", "separator")
+        elif favorite.startswith("Signal: "):
+            sig_name = favorite.replace("Signal: ", "")
+            if sig_name in signals:
+                self.context = {}  # Resetar o contexto
+                for line in signals[sig_name]:
+                    result = interpret(line, self.context)
+                    self.signals_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
+                    self.signals_output.insert(tk.END, f">>> {line}\n", "equation")
+                    self.signals_output.insert(tk.END, f"{result}\n", "result")
+                    self.signals_output.insert(tk.END, "---\n", "separator")
+                    self.signals_output.see(tk.END)
+                self.favorites_output.insert(tk.END, f"[{self.get_timestamp()}] Result shown in Signals tab.\n", "info")
+                self.favorites_output.insert(tk.END, "---\n", "separator")
 
     def run_signal(self):
-        signal = self.signal_var.get()
-        if not signal:
-            self.signals_output.insert(tk.END, f"[{self.get_timestamp()}] >>> (No signal selected)\n", "error")
+        sig_name = self.signal_var.get()
+        if not sig_name:
+            self.signals_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
+            self.signals_output.insert(tk.END, "Please select a signal to simulate.\n", "error")
             self.signals_output.insert(tk.END, "---\n", "separator")
             return
-
-        self.context = {}  # Reset context for new signal
-        self.signals_output.insert(tk.END, f"[{self.get_timestamp()}] >>> Simulating Signal: {signal}\n")
-        for expr in signals[signal]:
-            try:
-                result = interpret(expr, self.context)
-                self.signals_output.insert(tk.END, f"Expression: {expr}\n", "equation")
+        if sig_name in signals:
+            self.context = {}  # Resetar o contexto
+            for line in signals[sig_name]:
+                result = interpret(line, self.context)
+                self.signals_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
+                self.signals_output.insert(tk.END, f">>> {line}\n", "equation")
                 self.signals_output.insert(tk.END, f"{result}\n", "result")
-                # Check for matching phenomenon
-                pheno, meaning = self.check_phenomenon(expr)
-                if pheno:
-                    self.signals_output.insert(tk.END, f"Phenomenon Detected: {pheno}\n", "phenomenon")
-                    self.signals_output.insert(tk.END, f"Meaning: {meaning}\n", "result")
-            except Exception as e:
-                self.signals_output.insert(tk.END, f"Expression: {expr}\n", "equation")
-                self.signals_output.insert(tk.END, f"Error: {str(e)}\n", "error")
-        self.signals_output.insert(tk.END, "---\n", "separator")
+                self.signals_output.insert(tk.END, "---\n", "separator")
+                self.signals_output.see(tk.END)
+        else:
+            self.signals_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
+            self.signals_output.insert(tk.END, f"Unknown signal: {sig_name}\n", "error")
+            self.signals_output.insert(tk.END, "---\n", "separator")
+        self.signals_output.see(tk.END)
 
     def explain_phenomenon(self):
         pheno = self.phenomenon_var.get()
         if not pheno:
-            self.phenomena_output.insert(tk.END, f"[{self.get_timestamp()}] >>> (No phenomenon selected)\n", "error")
+            self.phenomena_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
+            self.phenomena_output.insert(tk.END, "Please select a phenomenon to explain.\n", "error")
             self.phenomena_output.insert(tk.END, "---\n", "separator")
             return
+        if pheno in phenomena:
+            eq, meaning = phenomena[pheno]
+            self.phenomena_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
+            self.phenomena_output.insert(tk.END, f"{pheno}\n", "phenomenon")
+            self.phenomena_output.insert(tk.END, f"{eq}\n", "equation")
+            self.phenomena_output.insert(tk.END, f"→ {meaning}\n", "result")
+            self.phenomena_output.insert(tk.END, "---\n", "separator")
+        else:
+            self.phenomena_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
+            self.phenomena_output.insert(tk.END, f"Unknown phenomenon: {pheno}\n", "error")
+            self.phenomena_output.insert(tk.END, "---\n", "separator")
+        self.phenomena_output.see(tk.END)
 
-        eq, meaning = phenomena[pheno]
-        self.context = {}  # Reset context for new phenomenon
-        self.phenomena_output.insert(tk.END, f"[{self.get_timestamp()}] >>> Phenomenon: {pheno}\n", "phenomenon")
-        self.phenomena_output.insert(tk.END, f"Equation: {eq}\n", "equation")
-        try:
-            result = interpret(eq, self.context)
-            self.phenomena_output.insert(tk.END, f"Interpretation: {result}\n", "result")
-        except Exception as e:
-            self.phenomena_output.insert(tk.END, f"Error: {str(e)}\n", "error")
-        self.phenomena_output.insert(tk.END, f"Meaning: {meaning}\n", "result")
-        self.phenomena_output.insert(tk.END, "---\n", "separator")
+    def clear_output(self):
+        current_tab = self.output_notebook.index(self.output_notebook.select())
+        if current_tab == 0:  # Expressions tab
+            self.expressions_output.delete(1.0, tk.END)
+            self.expressions_output.insert(tk.END, "Expression results will appear here.\n\n")
+        elif current_tab == 1:  # Signals tab
+            self.signals_output.delete(1.0, tk.END)
+            self.signals_output.insert(tk.END, "Signal simulation results will appear here.\n\n")
+        elif current_tab == 2:  # Phenomena tab
+            self.phenomena_output.delete(1.0, tk.END)
+            self.phenomena_output.insert(tk.END, "Phenomena explanations will appear here.\n\n")
+        elif current_tab == 3:  # Favorites tab
+            self.favorites_output.delete(1.0, tk.END)
+            self.favorites_output.insert(tk.END, "Your favorite phenomena and signals will appear here.\n")
+            self.favorites_output.insert(tk.END, "Double-click items in 'List Phenomena' or 'List Signals' to add/remove favorites.\n")
+            self.favorites_output.insert(tk.END, "Select a favorite from the dropdown and click 'Run Favorite' to execute.\n\n")
+            self.update_favorites_output()
+
+    def export_output(self):
+        current_tab = self.output_notebook.index(self.output_notebook.select())
+        if current_tab == 0:  # Expressions tab
+            content = self.expressions_output.get(1.0, tk.END)
+            filename = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
+        elif current_tab == 1:  # Signals tab
+            content = self.signals_output.get(1.0, tk.END)
+            filename = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
+        elif current_tab == 2:  # Phenomena tab
+            content = self.phenomena_output.get(1.0, tk.END)
+            filename = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
+        elif current_tab == 3:  # Favorites tab
+            content = self.favorites_output.get(1.0, tk.END)
+            filename = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
+        else:
+            return
+        if filename:
+            with open(filename, "w", encoding="utf-8") as f:
+                f.write(content)
+
+    def show_tutorial(self):
+        popup = tk.Toplevel(self.root)
+        popup.title("Tutorial")
+        popup.geometry("500x400")
+        popup.configure(bg="#1a1a2e")
+
+        tutorial_text = scrolledtext.ScrolledText(popup, width=60, height=20, wrap=tk.WORD, bg="#0f3460", fg="white")
+        tutorial_text.pack(padx=10, pady=10, expand=True, fill="both")
+
+        tutorial_content = (
+            "Welcome to the Alien Symbolic Interpreter!\n\n"
+            "Follow these steps to explore the language of shapes:\n\n"
+            "1. **Build an Expression**:\n"
+            "   - Click the symbols in the center panel to build an expression (e.g., Ψ + ∴ = ◐).\n"
+            "   - Use the operator buttons (+, ×, =, →, (, )) to add operators.\n"
+            "   - Click 'Interpret Built Expression' to see the result in the 'Expressions' tab.\n"
+            "   - If the expression matches a known phenomenon, it will also appear in the 'Phenomena' tab.\n\n"
+            "2. **Enter an Expression Manually**:\n"
+            "   - Type an expression in the 'Enter Expression Manually' field (e.g., Ψ = ∴ + ◐).\n"
+            "   - Click 'Interpret Manual' to see the result.\n\n"
+            "3. **Simulate a Signal**:\n"
+            "   - Select a signal (e.g., Wow!) from the 'Simulate a Signal' dropdown.\n"
+            "   - Click 'Run Signal' to see the simulation in the 'Signals' tab.\n\n"
+            "4. **Explain a Phenomenon**:\n"
+            "   - Select a phenomenon (e.g., Big Bang) from the 'Explain a Phenomenon' dropdown.\n"
+            "   - Click 'Explain Phenomenon' to see the explanation in the 'Phenomena' tab.\n\n"
+            "5. **Manage Favorites**:\n"
+            "   - Double-click a phenomenon or signal in the 'List Phenomena' or 'List Signals' windows to add/remove it from favorites.\n"
+            "   - View your favorites in the 'Favorites' tab.\n"
+            "   - Select a favorite from the 'Favorites' dropdown and click 'Run Favorite' to execute it.\n\n"
+            "6. **View the Mandala**:\n"
+            "   - Click 'View Mandala' to see a visual representation of the symbols.\n\n"
+            "7. **Explore History**:\n"
+            "   - After interpreting expressions, they appear in the 'Expression History' dropdown.\n"
+            "   - Select an expression and click 'Run Selected' to re-run it.\n\n"
+            "Enjoy exploring the universe through shapes!"
+        )
+        tutorial_text.insert(tk.END, tutorial_content)
+        tutorial_text.config(state="disabled")
 
     def view_mandala(self):
         popup = tk.Toplevel(self.root)
@@ -543,148 +697,19 @@ class AlienSymbolicInterpreterGUI:
                 x2, y2 = symbol_coords[sym2]
                 canvas.create_line(x1, y1, x2, y2, fill="yellow", dash=(4, 4))
 
+        # Position symbols in a circle
+        symbol_list = list(symbols.keys())
+        num_symbols = len(symbol_list)
+        for i, symbol in enumerate(symbol_list):
+            angle = 2 * math.pi * i / num_symbols
+            x = center_x + radius * math.cos(angle)
+            y = center_y + radius * math.sin(angle)
+            canvas.create_text(x, y, text=symbol, font=("Arial", 16), fill="lightblue", tags=("symbol", symbol))
+
         # Draw a small central circle
         canvas.create_oval(center_x - 10, center_y - 10, center_x + 10, center_y + 10, fill="#16213e", outline="white")
 
-    def show_tutorial(self):
-        tutorial_text = (
-            "👽 Alien Symbolic Interpreter Tutorial 👽\n\n"
-            "1. Build an Expression:\n"
-            "   - Use the symbol buttons to add symbols to your expression.\n"
-            "   - Use operators (+, ×, =, →) and parentheses to structure your expression.\n"
-            "   - Click 'Interpret Built Expression' to see the result.\n\n"
-            "2. Enter an Expression Manually:\n"
-            "   - Type your expression in the 'Enter Expression Manually' field.\n"
-            "   - Click 'Interpret Manual' to see the result.\n\n"
-            "3. Simulate a Signal:\n"
-            "   - Select a signal from the dropdown and click 'Run Signal'.\n\n"
-            "4. Explain a Phenomenon:\n"
-            "   - Select a phenomenon from the dropdown and click 'Explain Phenomenon'.\n\n"
-            "5. View the Mandala:\n"
-            "   - Click 'View Mandala' to see a symbolic representation of the symbols.\n\n"
-            "6. Use Favorites:\n"
-            "   - Double-click items in 'List Phenomena' or 'List Signals' to add/remove favorites.\n"
-            "   - Select a favorite from the dropdown and click 'Run Favorite'.\n\n"
-            "7. Expression History:\n"
-            "   - Your interpreted expressions are stored in the history dropdown.\n"
-            "   - Select an expression and click 'Run Selected' to re-run it.\n"
-            "   - Click 'Clear History' to reset the history.\n\n"
-            "Have fun exploring the cosmos! 🌌"
-        )
-        popup = tk.Toplevel(self.root)
-        popup.title("Tutorial")
-        popup.geometry("500x400")
-        text = scrolledtext.ScrolledText(popup, width=60, height=20, wrap=tk.WORD)
-        text.pack(padx=10, pady=10, expand=True, fill="both")
-        text.insert(tk.END, tutorial_text)
-        text.config(state="disabled")
-
-    def clear_output(self):
-        current_tab = self.output_notebook.index(self.output_notebook.select())
-        if current_tab == 0:  # Expressions tab
-            self.expressions_output.delete(1.0, tk.END)
-            self.expressions_output.insert(tk.END, "Expression results will appear here.\n\n")
-        elif current_tab == 1:  # Signals tab
-            self.signals_output.delete(1.0, tk.END)
-            self.signals_output.insert(tk.END, "Signal simulation results will appear here.\n\n")
-        elif current_tab == 2:  # Phenomena tab
-            self.phenomena_output.delete(1.0, tk.END)
-            self.phenomena_output.insert(tk.END, "Phenomena explanations will appear here.\n\n")
-        elif current_tab == 3:  # Favorites tab
-            self.favorites_output.delete(1.0, tk.END)
-            self.favorites_output.insert(tk.END, "Your favorite phenomena and signals will appear here.\n")
-            self.favorites_output.insert(tk.END, "Double-click items in 'List Phenomena' or 'List Signals' to add/remove favorites.\n")
-            self.favorites_output.insert(tk.END, "Select a favorite from the dropdown and click 'Run Favorite' to execute.\n\n")
-            self.update_favorites_output()
-
-    def export_output(self):
-        current_tab = self.output_notebook.index(self.output_notebook.select())
-        if current_tab == 0:
-            content = self.expressions_output.get(1.0, tk.END).strip()
-        elif current_tab == 1:
-            content = self.signals_output.get(1.0, tk.END).strip()
-        elif current_tab == 2:
-            content = self.phenomena_output.get(1.0, tk.END).strip()
-        elif current_tab == 3:
-            content = self.favorites_output.get(1.0, tk.END).strip()
-        else:
-            return
-
-        file_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
-        if file_path:
-            with open(file_path, "w", encoding="utf-8") as f:
-                f.write(content)
-
-    def load_favorites(self):
-        if os.path.exists("favorites.json"):
-            with open("favorites.json", "r") as f:
-                self.favorites = json.load(f)
-
-    def save_favorites(self):
-        with open("favorites.json", "w") as f:
-            json.dump(self.favorites, f)
-
-    def update_favorites_output(self):
-        self.favorites_output.insert(tk.END, "\nFavorites List:\n", "info")
-        if not self.favorites["phenomena"] and not self.favorites["signals"]:
-            self.favorites_output.insert(tk.END, "(No favorites yet)\n", "info")
-        else:
-            if self.favorites["phenomena"]:
-                self.favorites_output.insert(tk.END, "Phenomena:\n", "info")
-                for pheno in self.favorites["phenomena"]:
-                    self.favorites_output.insert(tk.END, f"- {pheno}\n", "result")
-            if self.favorites["signals"]:
-                self.favorites_output.insert(tk.END, "Signals:\n", "info")
-                for signal in self.favorites["signals"]:
-                    self.favorites_output.insert(tk.END, f"- {signal}\n", "result")
-        self.favorites_output.insert(tk.END, "---\n", "separator")
-        self.favorites_dropdown["values"] = self.get_favorites_list()
-
-    def get_favorites_list(self):
-        favorites_list = []
-        for pheno in self.favorites["phenomena"]:
-            favorites_list.append(f"Phenomenon: {pheno}")
-        for signal in self.favorites["signals"]:
-            favorites_list.append(f"Signal: {signal}")
-        return favorites_list if favorites_list else ["(No favorites yet)"]
-
-    def run_favorite(self):
-        favorite = self.favorites_var.get()
-        if not favorite or favorite == "(No favorites yet)":
-            self.favorites_output.insert(tk.END, f"[{self.get_timestamp()}] >>> (No favorite selected)\n", "error")
-            self.favorites_output.insert(tk.END, "---\n", "separator")
-            return
-
-        self.context = {}  # Reset context for new favorite
-        if favorite.startswith("Phenomenon: "):
-            pheno = favorite.replace("Phenomenon: ", "")
-            eq, meaning = phenomena[pheno]
-            self.favorites_output.insert(tk.END, f"[{self.get_timestamp()}] >>> Phenomenon: {pheno}\n", "phenomenon")
-            self.favorites_output.insert(tk.END, f"Equation: {eq}\n", "equation")
-            try:
-                result = interpret(eq, self.context)
-                self.favorites_output.insert(tk.END, f"Interpretation: {result}\n", "result")
-            except Exception as e:
-                self.favorites_output.insert(tk.END, f"Error: {str(e)}\n", "error")
-            self.favorites_output.insert(tk.END, f"Meaning: {meaning}\n", "result")
-        elif favorite.startswith("Signal: "):
-            signal = favorite.replace("Signal: ", "")
-            self.favorites_output.insert(tk.END, f"[{self.get_timestamp()}] >>> Simulating Signal: {signal}\n")
-            for expr in signals[signal]:
-                try:
-                    result = interpret(expr, self.context)
-                    self.favorites_output.insert(tk.END, f"Expression: {expr}\n", "equation")
-                    self.favorites_output.insert(tk.END, f"{result}\n", "result")
-                    pheno, meaning = self.check_phenomenon(expr)
-                    if pheno:
-                        self.favorites_output.insert(tk.END, f"Phenomenon Detected: {pheno}\n", "phenomenon")
-                        self.favorites_output.insert(tk.END, f"Meaning: {meaning}\n", "result")
-                except Exception as e:
-                    self.favorites_output.insert(tk.END, f"Expression: {expr}\n", "equation")
-                    self.favorites_output.insert(tk.END, f"Error: {str(e)}\n", "error")
-        self.favorites_output.insert(tk.END, "---\n", "separator")
-
-# Main execution
+# Run the GUI
 if __name__ == "__main__":
     root = tk.Tk()
     app = AlienSymbolicInterpreterGUI(root)
