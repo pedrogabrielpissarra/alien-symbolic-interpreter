@@ -120,7 +120,7 @@ class AlienSymbolicInterpreterGUI:
         self.dark_mode = True  # Fixar dark mode como único
 
         # Set window size
-        self.root.geometry("1000x500")
+        self.root.geometry("1575x865")
 
         # Configure styles for dark mode
         self.style = ttk.Style()
