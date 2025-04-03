@@ -317,7 +317,7 @@ class AlienSymbolicInterpreterGUI:
         self.style.configure("Custom.TButton", background="#16213e", foreground="white", bordercolor="#16213e", focusthickness=0, font=("Arial", 14))
         self.style.map("Custom.TButton", background=[("active", "#0f3460")], foreground=[("active", "white")])
         self.style.configure("TEntry", fieldbackground="#0f3460", foreground="white", font=("Arial", 11))
-        self.style.configure("TCombobox", fieldbackground="#0f3460", foreground="white", font=("Arial", 11))
+        self.style.configure("TCombobox", fieldbackground="#0f3460", foreground="white", font=("Arial", 12))
         self.style.map("TCombobox", fieldbackground=[("readonly", "#0f3460")], selectbackground=[("readonly", "#0f3460")])
         self.style.configure("TCheckbutton", background="#1a1a2e", foreground="white")
         self.expressions_output.configure(bg="#0f3460", fg="white", insertbackground="white")
