@@ -436,7 +436,7 @@ class AlienSymbolicInterpreterGUI:
     def list_symbols(self):
         popup = tk.Toplevel(self.root)
         popup.title("Available Symbols")
-        popup.geometry("650x400")
+        popup.geometry("700x400")
         popup.configure(bg="#1a1a2e")
 
         tree = ttk.Treeview(popup, columns=("Symbol", "Meaning"), show="headings")
@@ -456,7 +456,7 @@ class AlienSymbolicInterpreterGUI:
     def list_phenomena(self):
         popup = tk.Toplevel(self.root)
         popup.title("Known Cosmic Phenomena")
-        popup.geometry("850x400")
+        popup.geometry("950x400")
         popup.configure(bg="#1a1a2e")
 
         tree = ttk.Treeview(popup, columns=("Phenomenon", "Equation", "Meaning", "Favorite"), show="headings")
@@ -466,7 +466,7 @@ class AlienSymbolicInterpreterGUI:
         tree.heading("Favorite", text="Favorite")
         tree.column("Phenomenon", width=200)
         tree.column("Equation", width=150)
-        tree.column("Meaning", width=450)
+        tree.column("Meaning", width=500)
         tree.column("Favorite", width=50)
 
         for name, (eq, meaning) in phenomena.items():
