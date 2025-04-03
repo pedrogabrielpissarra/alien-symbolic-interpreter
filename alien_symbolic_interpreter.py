@@ -466,7 +466,7 @@ class AlienSymbolicInterpreterGUI:
         tree.heading("Favorite", text="Favorite")
         tree.column("Phenomenon", width=200)
         tree.column("Equation", width=150)
-        tree.column("Meaning", width=500)
+        tree.column("Meaning", width=550)
         tree.column("Favorite", width=50)
 
         for name, (eq, meaning) in phenomena.items():
