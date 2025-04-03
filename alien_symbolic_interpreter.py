@@ -278,11 +278,16 @@ class AlienSymbolicInterpreterGUI:
         self.configure_styles()
 
     def configure_styles(self):
+        # Forçar o tema "clam" para maior controle sobre os estilos
+        self.style = ttk.Style()
+        self.style.theme_use("clam")
+
         # Dark mode fixo (cosmic theme)
         self.root.configure(bg="#1a1a2e")
         self.style.configure("TFrame", background="#1a1a2e")
         self.style.configure("TLabel", background="#1a1a2e", foreground="white")
-        self.style.configure("Custom.TButton", background="#16213e", foreground="white", bordercolor="#16213e", focusthickness=0)
+        # Ajustar o estilo dos botões
+        self.style.configure("Custom.TButton", background="#16213e", foreground="white", bordercolor="#16213e", focusthickness=0, font=("Arial", 10))
         self.style.map("Custom.TButton", background=[("active", "#0f3460")], foreground=[("active", "white")])
         self.style.configure("TEntry", fieldbackground="#0f3460", foreground="white")
         self.style.configure("TCombobox", fieldbackground="#0f3460", foreground="white")
@@ -663,6 +668,34 @@ class AlienSymbolicInterpreterGUI:
         # Center of the mandala
         center_x, center_y = 250, 250
         radius = 150
+
+        # Position symbols in a circle and store their coordinates
+        symbol_list = list(symbols.keys())
+        num_symbols = len(symbol_list)
+        symbol_coords = {}
+        for i, symbol in enumerate(symbol_list):
+            angle = 2 * math.pi * i / num_symbols
+            x = center_x + radius * math.cos(angle)
+            y = center_y + radius * math.sin(angle)
+            canvas.create_text(x, y, text=symbol, font=("Arial", 16), fill="lightblue", tags=("symbol", symbol))
+            symbol_coords[symbol] = (x, y)
+
+        # Draw connections between symbols (yellow dashed lines)
+        connections = [
+            ("Ω", "⇧"),
+            ("∴", "⧗"),
+            ("Ψ", "✧"),
+            ("꩜", "⬠"),
+            ("⇌", "⇀"),
+            ("◐", "∅"),
+            ("●", "∞"),
+            ("ϕ", "⇧"),
+        ]
+        for sym1, sym2 in connections:
+            if sym1 in symbol_coords and sym2 in symbol_coords:
+                x1, y1 = symbol_coords[sym1]
+                x2, y2 = symbol_coords[sym2]
+                canvas.create_line(x1, y1, x2, y2, fill="yellow", dash=(4, 4))
 
         # Position symbols in a circle
         symbol_list = list(symbols.keys())
