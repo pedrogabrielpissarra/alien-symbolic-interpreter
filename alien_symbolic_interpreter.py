@@ -208,7 +208,7 @@ class AlienSymbolicInterpreterGUI:
 
         # List buttons
         self.symbols_button = ttk.Button(self.controls_frame, text="List Symbols", command=self.list_symbols)
-        self.symbols_button.grid(row=1, column=0, pady=5, sticky Ascending = True
+        self.symbols_button.grid(row=1, column=0, pady=5, sticky=(tk.W, tk.E))
         self.phenomena_button = ttk.Button(self.controls_frame, text="List Phenomena", command=self.list_phenomena)
         self.phenomena_button.grid(row=2, column=0, pady=5, sticky=(tk.W, tk.E))
         self.signals_button = ttk.Button(self.controls_frame, text="List Signals", command=self.list_signals)
