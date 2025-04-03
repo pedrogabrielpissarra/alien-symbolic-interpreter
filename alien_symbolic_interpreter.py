@@ -513,7 +513,7 @@ class AlienSymbolicInterpreterGUI:
             favorites_list.append(f"Signal: {sig}")
         return favorites_list if favorites_list else ["(No favorites yet)"]
 
-    def run \nrun_favorite(self):
+    def run_favorite(self):
         favorite = self.favorites_var.get()
         if not favorite or favorite == "(No favorites yet)":
             self.favorites_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
