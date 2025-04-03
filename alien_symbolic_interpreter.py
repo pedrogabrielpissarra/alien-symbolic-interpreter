@@ -450,7 +450,7 @@ class AlienSymbolicInterpreterGUI:
             func(self.context)
             tree.insert("", tk.END, values=(symbol, self.context.get(symbol)), tags=("symbol",))
         
-        tree.tag_configure("symbol", foreground="#00BFFF")
+        tree.tag_configure("symbol", foreground="black", font=("Arial", 12))
         tree.pack(expand=True, fill="both", padx=10, pady=10)
 
     def list_phenomena(self):
@@ -472,7 +472,7 @@ class AlienSymbolicInterpreterGUI:
         for name, (eq, meaning) in phenomena.items():
             tree.insert("", tk.END, values=(name, eq, meaning, "Add" if name not in self.favorites["phenomena"] else "Remove"), tags=("phenomenon", name))
         
-        tree.tag_configure("phenomenon", foreground="darkgreen")
+        tree.tag_configure("phenomenon", foreground="black", font=("Arial", 12))
         tree.bind("<Double-1>", lambda event: self.toggle_favorite(event, "phenomena"))
         tree.pack(expand=True, fill="both", padx=10, pady=10)
 
@@ -490,6 +490,9 @@ class AlienSymbolicInterpreterGUI:
 
         for name in signals:
             tree.insert("", tk.END, values=(name, "Add" if name not in self.favorites["signals"] else "Remove"), tags=("signal", name))
+            tree.tag_configure("signal", foreground="black", font=("Arial", 12))  # Cor preta e fonte maior
+            tree.bind("<Double-1>", lambda event: self.toggle_favorite(event, "signals"))
+            tree.pack(expand=True, fill="both", padx=10, pady=10)
         
         tree.bind("<Double-1>", lambda event: self.toggle_favorite(event, "signals"))
         tree.pack(expand=True, fill="both", padx=10, pady=10)
