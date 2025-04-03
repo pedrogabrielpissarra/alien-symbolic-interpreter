@@ -1,4 +1,4 @@
-# Alien Symbolic Interpreter (Prototype v9.1 - GUI Version with Fixed Behavior)
+# Alien Symbolic Interpreter (Prototype v10 - GUI Version with Clickable Symbols)
 # Each symbol maps to a concept or function with simulated behavior
 
 import random
@@ -9,7 +9,7 @@ from tkinter import ttk, scrolledtext
 symbols = {
     "●": lambda ctx: ctx.update({"●": "Universe Initialized (Big Bang Triggered)"}),
     "◐": lambda ctx: ctx.update({"◐": "Duality Formed (Half-State Observed)"}),
-    "∴": lambda ctx: ctx.update({"∴": [f"State {i}: Energy Level {random.randint(1, 100)}" for i in range(max(2, random.randint(2, 5)))]}),  # Garante pelo menos 2 estados
+    "∴": lambda ctx: ctx.update({"∴": [f"State {i}: Energy Level {random.randint(1, 100)}" for i in range(max(2, random.randint(2, 5)))]}),
     "✧": lambda ctx: ctx.update({"✧": f"State Collapsed to {random.choice(ctx.get('∴', ['Unknown State']))}"}),
     "Ψ": lambda ctx: ctx.update({"Ψ": "Quantum Potential Activated"}),
     "∅": lambda ctx: ctx.update({"∅": "Void State (No Energy)"}),
@@ -53,7 +53,7 @@ phenomena = {
 
 # Symbolic signal definitions
 signals = {
-    "FRB 121102": ["∴", "∞ ⇌ ⇧ = ⧗ × ϕ"],  # Adiciona ∴ no início pra garantir que as possibilidades estejam inicializadas
+    "FRB 121102": ["∴", "∞ ⇌ ⇧ = ⧗ × ϕ"],
     "Wow!": ["● ⇌ ✧"],
     "BLC1": ["◐ ⇌ ⬠"],
     "GRB": ["✧ × ꩜"]
@@ -92,8 +92,9 @@ def interpret(expression, context):
 class AlienSymbolicInterpreterGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("👽 Alien Symbolic Interpreter (Prototype v9.1)")
+        self.root.title("👽 Alien Symbolic Interpreter (Prototype v10)")
         self.context = {}  # Initialize context for symbolic operations
+        self.current_expression = []  # Store the current expression being built
 
         # Main frame
         self.main_frame = ttk.Frame(self.root, padding="10")
@@ -106,47 +107,101 @@ class AlienSymbolicInterpreterGUI:
         # Output area (scrolled text)
         self.output_area = scrolledtext.ScrolledText(self.main_frame, width=60, height=15, wrap=tk.WORD)
         self.output_area.grid(row=1, column=0, columnspan=3, pady=10)
-        self.output_area.insert(tk.END, "Click the buttons below to explore symbols, phenomena, and signals.\nOr enter a symbolic expression and click 'Interpret'.\n\n")
+        self.output_area.insert(tk.END, "Click the buttons below to explore symbols, phenomena, and signals.\nOr build your own expression using the clickable symbols!\n\n")
 
-        # Symbols button
+        # Symbols, Phenomena, Signals buttons
         self.symbols_button = ttk.Button(self.main_frame, text="List Symbols", command=self.list_symbols)
         self.symbols_button.grid(row=2, column=0, padx=5, pady=5)
 
-        # Phenomena button
         self.phenomena_button = ttk.Button(self.main_frame, text="List Phenomena", command=self.list_phenomena)
         self.phenomena_button.grid(row=2, column=1, padx=5, pady=5)
 
-        # Signals button
         self.signals_button = ttk.Button(self.main_frame, text="List Signals", command=self.list_signals)
         self.signals_button.grid(row=2, column=2, padx=5, pady=5)
 
-        # Expression input
-        self.expression_label = ttk.Label(self.main_frame, text="Enter a Symbolic Expression (e.g., Ψ = ∴ + ◐):")
-        self.expression_label.grid(row=3, column=0, columnspan=3, pady=5)
-        self.expression_entry = ttk.Entry(self.main_frame, width=50)
-        self.expression_entry.grid(row=4, column=0, columnspan=3, pady=5)
+        # Build Expression Section
+        self.build_label = ttk.Label(self.main_frame, text="Build Your Expression (Click Symbols Below):")
+        self.build_label.grid(row=3, column=0, columnspan=3, pady=5)
 
-        # Interpret button
-        self.interpret_button = ttk.Button(self.main_frame, text="Interpret Expression", command=self.interpret_expression)
-        self.interpret_button.grid(row=5, column=0, columnspan=3, pady=5)
+        # Current expression display
+        self.expression_display = ttk.Label(self.main_frame, text="Current Expression: (empty)", font=("Arial", 12))
+        self.expression_display.grid(row=4, column=0, columnspan=3, pady=5)
+
+        # Clickable symbols grid
+        self.symbols_frame = ttk.Frame(self.main_frame)
+        self.symbols_frame.grid(row=5, column=0, columnspan=3, pady=5)
+        self.symbol_buttons = {}
+        row, col = 0, 0
+        for symbol in symbols.keys():
+            btn = ttk.Button(self.symbols_frame, text=symbol, width=5, command=lambda s=symbol: self.add_symbol(s))
+            btn.grid(row=row, column=col, padx=2, pady=2)
+            self.symbol_buttons[symbol] = btn
+            col += 1
+            if col > 4:  # 5 symbols per row
+                col = 0
+                row += 1
+
+        # Additional operators
+        self.operator_frame = ttk.Frame(self.main_frame)
+        self.operator_frame.grid(row=6, column=0, columnspan=3, pady=5)
+        ttk.Button(self.operator_frame, text="+", width=5, command=lambda: self.add_symbol("+")).grid(row=0, column=0, padx=2)
+        ttk.Button(self.operator_frame, text="×", width=5, command=lambda: self.add_symbol("×")).grid(row=0, column=1, padx=2)
+        ttk.Button(self.operator_frame, text="=", width=5, command=lambda: self.add_symbol("=")).grid(row=0, column=2, padx=2)
+        ttk.Button(self.operator_frame, text="→", width=5, command=lambda: self.add_symbol("→")).grid(row=0, column=3, padx=2)
+        ttk.Button(self.operator_frame, text="Clear", width=10, command=self.clear_expression).grid(row=0, column=4, padx=2)
+
+        # Interpret built expression
+        self.interpret_build_button = ttk.Button(self.main_frame, text="Interpret Built Expression", command=self.interpret_built_expression)
+        self.interpret_build_button.grid(row=7, column=0, columnspan=3, pady=5)
+
+        # Manual Expression Input
+        self.expression_label = ttk.Label(self.main_frame, text="Or Enter a Symbolic Expression Manually (e.g., Ψ = ∴ + ◐):")
+        self.expression_label.grid(row=8, column=0, columnspan=3, pady=5)
+        self.expression_entry = ttk.Entry(self.main_frame, width=50)
+        self.expression_entry.grid(row=9, column=0, columnspan=3, pady=5)
+        self.interpret_button = ttk.Button(self.main_frame, text="Interpret Manual Expression", command=self.interpret_expression)
+        self.interpret_button.grid(row=10, column=0, columnspan=3, pady=5)
 
         # Run Signal dropdown and button
         self.signal_label = ttk.Label(self.main_frame, text="Select a Signal to Simulate:")
-        self.signal_label.grid(row=6, column=0, columnspan=3, pady=5)
+        self.signal_label.grid(row=11, column=0, columnspan=3, pady=5)
         self.signal_var = tk.StringVar()
         self.signal_dropdown = ttk.Combobox(self.main_frame, textvariable=self.signal_var, values=list(signals.keys()))
-        self.signal_dropdown.grid(row=7, column=0, columnspan=3, pady=5)
+        self.signal_dropdown.grid(row=12, column=0, columnspan=3, pady=5)
         self.run_signal_button = ttk.Button(self.main_frame, text="Run Signal", command=self.run_signal)
-        self.run_signal_button.grid(row=8, column=0, columnspan=3, pady=5)
+        self.run_signal_button.grid(row=13, column=0, columnspan=3, pady=5)
 
         # Explain Phenomenon dropdown and button
         self.phenomenon_label = ttk.Label(self.main_frame, text="Select a Phenomenon to Explain:")
-        self.phenomenon_label.grid(row=9, column=0, columnspan=3, pady=5)
+        self.phenomenon_label.grid(row=14, column=0, columnspan=3, pady=5)
         self.phenomenon_var = tk.StringVar()
         self.phenomenon_dropdown = ttk.Combobox(self.main_frame, textvariable=self.phenomenon_var, values=list(phenomena.keys()))
-        self.phenomenon_dropdown.grid(row=10, column=0, columnspan=3, pady=5)
+        self.phenomenon_dropdown.grid(row=15, column=0, columnspan=3, pady=5)
         self.explain_phenomenon_button = ttk.Button(self.main_frame, text="Explain Phenomenon", command=self.explain_phenomenon)
-        self.explain_phenomenon_button.grid(row=11, column=0, columnspan=3, pady=5)
+        self.explain_phenomenon_button.grid(row=16, column=0, columnspan=3, pady=5)
+
+    def add_symbol(self, symbol):
+        self.current_expression.append(symbol)
+        self.update_expression_display()
+
+    def clear_expression(self):
+        self.current_expression = []
+        self.update_expression_display()
+
+    def update_expression_display(self):
+        if not self.current_expression:
+            self.expression_display.config(text="Current Expression: (empty)")
+        else:
+            self.expression_display.config(text=f"Current Expression: {' '.join(self.current_expression)}")
+
+    def interpret_built_expression(self):
+        if not self.current_expression:
+            self.output_area.insert(tk.END, "\nPlease build an expression using the symbols above.\n")
+            return
+        expression = " ".join(self.current_expression)
+        result = interpret(expression, self.context)
+        self.output_area.insert(tk.END, f"\n>>> {expression}\n{result}\n---\n")
+        self.output_area.see(tk.END)
 
     def list_symbols(self):
         self.output_area.insert(tk.END, "\nAvailable Symbols and Their Meanings:\n")
