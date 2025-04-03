@@ -456,7 +456,7 @@ class AlienSymbolicInterpreterGUI:
     def list_phenomena(self):
         popup = tk.Toplevel(self.root)
         popup.title("Known Cosmic Phenomena")
-        popup.geometry("950x400")
+        popup.geometry("1000x400")
         popup.configure(bg="#1a1a2e")
 
         tree = ttk.Treeview(popup, columns=("Phenomenon", "Equation", "Meaning", "Favorite"), show="headings")
