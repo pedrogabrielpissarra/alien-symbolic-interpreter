@@ -1,7 +1,9 @@
-# Alien Symbolic Interpreter (Prototype v7 - CLI Version with Enhanced UX)
+# Alien Symbolic Interpreter (Prototype v8 - GUI Version with Tkinter)
 # Each symbol maps to a concept or function with simulated behavior
 
 import random
+import tkinter as tk
+from tkinter import ttk, scrolledtext
 
 # Symbol-function mapping (with simulated behaviors)
 symbols = {
@@ -57,13 +59,6 @@ signals = {
     "GRB": ["✧ × ꩜"]
 }
 
-# Example expressions for demonstration
-examples = [
-    ("Ψ = ∴ + ◐", "Simulates quantum superposition: combining possibilities and a split condition to form a quantum state."),
-    ("run Wow!", "Runs the Wow! Signal simulation: a totality oscillating into a collapse."),
-    ("explain Big Bang", "Explains the Big Bang phenomenon using its symbolic equation and meaning.")
-]
-
 # Symbolic parser with context and conditionals
 def interpret(expression, context):
     if expression.startswith("if"):
@@ -93,85 +88,121 @@ def interpret(expression, context):
             output.append(token)
     return " ".join(output)
 
-# CLI runner for symbolic scripts
-def run_script(script_lines, context):
-    for line in script_lines:
-        print(f">>> {line}")
-        print(interpret(line, context))
-        print("---")
+# GUI Application
+class AlienSymbolicInterpreterGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("👽 Alien Symbolic Interpreter (Prototype v8)")
+        self.context = {}  # Initialize context for symbolic operations
 
-# Main CLI loop
-if __name__ == "__main__":
-    context = {}  # Initialize an empty context for each session
-    print("👽 Welcome to the Alien Symbolic Interpreter (Prototype v7) 👽")
-    print("This tool simulates a 'language of shapes' for cosmic signals and phenomena.")
-    print("Explore the universe through symbolic equations inspired by real physics!")
-    print("\nHow to Use:")
-    print("- Type 'help' to see all available commands.")
-    print("- Type 'symbols' to list all available symbols and their meanings.")
-    print("- Type 'signals' to list preset cosmic signals (e.g., Wow!, FRB 121102).")
-    print("- Type 'phenomena' to list known cosmic phenomena (e.g., Quantum Superposition).")
-    print("- Type 'examples' to see example commands to get started.")
-    print("- Type 'run SIGNAL_NAME' to simulate a signal (e.g., 'run Wow!').")
-    print("- Type 'explain PHENOMENON_NAME' to learn about a phenomenon (e.g., 'explain Big Bang').")
-    print("- Or type a symbolic expression directly (e.g., 'Ψ = ∴ + ◐').")
-    print("- Type 'exit' to quit.")
-    print("\nTry starting with 'examples' or 'help' to get a feel for the tool!")
+        # Main frame
+        self.main_frame = ttk.Frame(self.root, padding="10")
+        self.main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
-    while True:
-        user_input = input(">> ").strip()
+        # Welcome message
+        self.welcome_label = ttk.Label(self.main_frame, text="Welcome to the Alien Symbolic Interpreter!\nExplore the universe through a language of shapes.", justify="center")
+        self.welcome_label.grid(row=0, column=0, columnspan=3, pady=10)
 
-        if user_input.lower() == "exit":
-            print("Goodbye, human. Keep exploring the cosmos!")
-            break
+        # Output area (scrolled text)
+        self.output_area = scrolledtext.ScrolledText(self.main_frame, width=60, height=15, wrap=tk.WORD)
+        self.output_area.grid(row=1, column=0, columnspan=3, pady=10)
+        self.output_area.insert(tk.END, "Click the buttons below to explore symbols, phenomena, and signals.\nOr enter a symbolic expression and click 'Interpret'.\n\n")
 
-        elif user_input.lower() == "help":
-            print("\nAvailable Commands:")
-            print("- help: Show this help message.")
-            print("- symbols: List all available symbols and their meanings.")
-            print("- signals: List preset cosmic signals (e.g., Wow!, FRB 121102).")
-            print("- phenomena: List known cosmic phenomena (e.g., Quantum Superposition).")
-            print("- examples: Show example commands to get started.")
-            print("- run SIGNAL_NAME: Simulate a cosmic signal (e.g., 'run Wow!').")
-            print("- explain PHENOMENON_NAME: Learn about a phenomenon (e.g., 'explain Big Bang').")
-            print("- [expression]: Type a symbolic expression directly (e.g., 'Ψ = ∴ + ◐').")
-            print("- exit: Quit the program.")
+        # Symbols button
+        self.symbols_button = ttk.Button(self.main_frame, text="List Symbols", command=self.list_symbols)
+        self.symbols_button.grid(row=2, column=0, padx=5, pady=5)
 
-        elif user_input.lower() == "symbols":
-            print("\nAvailable Symbols and Their Meanings:")
-            for symbol, func in symbols.items():
-                func(context)  # Update context to get the meaning
-                print(f"- {symbol}: {context.get(symbol)}")
+        # Phenomena button
+        self.phenomena_button = ttk.Button(self.main_frame, text="List Phenomena", command=self.list_phenomena)
+        self.phenomena_button.grid(row=2, column=1, padx=5, pady=5)
 
-        elif user_input.lower() == "signals":
-            print("\nAvailable Signals:")
-            for name in signals:
-                print(f"- {name}")
+        # Signals button
+        self.signals_button = ttk.Button(self.main_frame, text="List Signals", command=self.list_signals)
+        self.signals_button.grid(row=2, column=2, padx=5, pady=5)
 
-        elif user_input.lower() == "phenomena":
-            print("\nKnown Cosmic Phenomena:")
-            for name in phenomena:
-                print(f"- {name}")
+        # Expression input
+        self.expression_label = ttk.Label(self.main_frame, text="Enter a Symbolic Expression (e.g., Ψ = ∴ + ◐):")
+        self.expression_label.grid(row=3, column=0, columnspan=3, pady=5)
+        self.expression_entry = ttk.Entry(self.main_frame, width=50)
+        self.expression_entry.grid(row=4, column=0, columnspan=3, pady=5)
 
-        elif user_input.lower() == "examples":
-            print("\nExample Commands to Get Started:")
-            for cmd, desc in examples:
-                print(f"- '{cmd}': {desc}")
+        # Interpret button
+        self.interpret_button = ttk.Button(self.main_frame, text="Interpret Expression", command=self.interpret_expression)
+        self.interpret_button.grid(row=5, column=0, columnspan=3, pady=5)
 
-        elif user_input.startswith("run "):
-            sig_name = user_input[4:].strip()
-            if sig_name in signals:
-                run_script(signals[sig_name], context)
-            else:
-                print(f"Unknown signal: {sig_name}. Type 'signals' to see available options.")
+        # Run Signal dropdown and button
+        self.signal_label = ttk.Label(self.main_frame, text="Select a Signal to Simulate:")
+        self.signal_label.grid(row=6, column=0, columnspan=3, pady=5)
+        self.signal_var = tk.StringVar()
+        self.signal_dropdown = ttk.Combobox(self.main_frame, textvariable=self.signal_var, values=list(signals.keys()))
+        self.signal_dropdown.grid(row=7, column=0, columnspan=3, pady=5)
+        self.run_signal_button = ttk.Button(self.main_frame, text="Run Signal", command=self.run_signal)
+        self.run_signal_button.grid(row=8, column=0, columnspan=3, pady=5)
 
-        elif user_input.startswith("explain "):
-            pheno = user_input[8:].strip()
-            if pheno in phenomena:
-                eq, meaning = phenomena[pheno]
-                print(f"\n{pheno}\n{eq}\n→ {meaning}")
-            else:
-                print(f"Unknown phenomenon: {pheno}. Type 'phenomena' to see available options.")
+        # Explain Phenomenon dropdown and button
+        self.phenomenon_label = ttk.Label(self.main_frame, text="Select a Phenomenon to Explain:")
+        self.phenomenon_label.grid(row=9, column=0, columnspan=3, pady=5)
+        self.phenomenon_var = tk.StringVar()
+        self.phenomenon_dropdown = ttk.Combobox(self.main_frame, textvariable=self.phenomenon_var, values=list(phenomena.keys()))
+        self.phenomenon_dropdown.grid(row=10, column=0, columnspan=3, pady=5)
+        self.explain_phenomenon_button = ttk.Button(self.main_frame, text="Explain Phenomenon", command=self.explain_phenomenon)
+        self.explain_phenomenon_button.grid(row=11, column=0, columnspan=3, pady=5)
 
+    def list_symbols(self):
+        self.output_area.insert(tk.END, "\nAvailable Symbols and Their Meanings:\n")
+        for symbol, func in symbols.items():
+            func(self.context)
+            self.output_area.insert(tk.END, f"- {symbol}: {self.context.get(symbol)}\n")
+        self.output_area.see(tk.END)
+
+    def list_phenomena(self):
+        self.output_area.insert(tk.END, "\nKnown Cosmic Phenomena:\n")
+        for name in phenomena:
+            self.output_area.insert(tk.END, f"- {name}\n")
+        self.output_area.see(tk.END)
+
+    def list_signals(self):
+        self.output_area.insert(tk.END, "\nAvailable Signals:\n")
+        for name in signals:
+            self.output_area.insert(tk.END, f"- {name}\n")
+        self.output_area.see(tk.END)
+
+    def interpret_expression(self):
+        expression = self.expression_entry.get().strip()
+        if not expression:
+            self.output_area.insert(tk.END, "\nPlease enter a symbolic expression.\n")
+            return
+        result = interpret(expression, self.context)
+        self.output_area.insert(tk.END, f"\n>>> {expression}\n{result}\n---\n")
+        self.output_area.see(tk.END)
+
+    def run_signal(self):
+        sig_name = self.signal_var.get()
+        if not sig_name:
+            self.output_area.insert(tk.END, "\nPlease select a signal to simulate.\n")
+            return
+        if sig_name in signals:
+            for line in signals[sig_name]:
+                result = interpret(line, self.context)
+                self.output_area.insert(tk.END, f"\n>>> {line}\n{result}\n---\n")
         else:
-            print(interpret(user_input, context))
+            self.output_area.insert(tk.END, f"\nUnknown signal: {sig_name}\n")
+        self.output_area.see(tk.END)
+
+    def explain_phenomenon(self):
+        pheno = self.phenomenon_var.get()
+        if not pheno:
+            self.output_area.insert(tk.END, "\nPlease select a phenomenon to explain.\n")
+            return
+        if pheno in phenomena:
+            eq, meaning = phenomena[pheno]
+            self.output_area.insert(tk.END, f"\n{pheno}\n{eq}\n→ {meaning}\n---\n")
+        else:
+            self.output_area.insert(tk.END, f"\nUnknown phenomenon: {pheno}\n")
+        self.output_area.see(tk.END)
+
+# Run the GUI
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = AlienSymbolicInterpreterGUI(root)
+    root.mainloop()
