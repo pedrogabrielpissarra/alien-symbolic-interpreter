@@ -64,7 +64,21 @@ signals = {
 }
 
 # Symbolic parser with context and conditionals
+def evaluate_subexpression(subexpr, context):
+    # Remove os parênteses externos e interpreta a subexpressão
+    subexpr = subexpr.strip("()")
+    tokens = subexpr.replace("=", " = ").split()
+    output = []
+    for token in tokens:
+        if token in symbols:
+            symbols[token](context)
+            output.append(context.get(token))
+        else:
+            output.append(token)
+    return " ".join(map(str, output))
+
 def interpret(expression, context):
+    # Primeiro, lidamos com expressões condicionais
     if expression.startswith("if"):
         condition = expression[3:].strip(":")
         left, op, right = condition.split()
@@ -73,12 +87,45 @@ def interpret(expression, context):
         condition_met = (left_val == right_val if op == "==" else left_val != right_val)
         return f"Condition {left} {op} {right} => {condition_met}"
 
+    # Lidar com transições (→)
     if "→" in expression:
         origin, target = expression.split("→")
         origin = origin.strip()
         target = target.strip()
-        context[target] = context.get(origin, None)
+
+        # Verificar se a origem contém parênteses
+        while "(" in origin and ")" in origin:
+            # Encontrar a subexpressão mais interna
+            start = origin.rindex("(")
+            end = origin.find(")", start)
+            if end == -1:
+                return f"Error: Unmatched parentheses in {origin}"
+            subexpr = origin[start:end+1]
+            subresult = evaluate_subexpression(subexpr, context)
+            origin = origin[:start] + subresult + origin[end+1:]
+
+        # Interpretar a origem após resolver os parênteses
+        tokens = origin.replace("=", " = ").split()
+        output = []
+        for token in tokens:
+            if token in symbols:
+                symbols[token](context)
+                output.append(context.get(token))
+            else:
+                output.append(token)
+        result = " ".join(map(str, output))
+        context[target] = result
         return f"Transition: {origin} → {target} => {context.get(target)}"
+
+    # Lidar com expressões gerais
+    while "(" in expression and ")" in expression:
+        start = expression.rindex("(")
+        end = expression.find(")", start)
+        if end == -1:
+            return f"Error: Unmatched parentheses in {expression}"
+        subexpr = expression[start:end+1]
+        subresult = evaluate_subexpression(subexpr, context)
+        expression = expression[:start] + subresult + expression[end+1:]
 
     tokens = expression.replace("=", " = ").split()
     output = []
@@ -166,9 +213,9 @@ class AlienSymbolicInterpreterGUI:
         self.update_favorites_output()  # Populate the favorites list initially
 
         # Output controls
-        self.clear_output_button = ttk.Button(self.output_frame, text="Clear Output", command=self.clear_output)
+        self.clear_output_button = ttk.Button(self.output_frame, text="Clear Output", command=self.clear_output, style="Custom.TButton")
         self.clear_output_button.grid(row=0, column=0, pady=5, sticky=tk.W)
-        self.export_output_button = ttk.Button(self.output_frame, text="Export Output", command=self.export_output)
+        self.export_output_button = ttk.Button(self.output_frame, text="Export Output", command=self.export_output, style="Custom.TButton")
         self.export_output_button.grid(row=0, column=1, pady=5, sticky=tk.E)
 
         # Center Column: Build Expression
@@ -187,7 +234,7 @@ class AlienSymbolicInterpreterGUI:
         self.symbol_buttons = {}
         row, col = 0, 0
         for symbol in symbols.keys():
-            btn = ttk.Button(self.symbols_frame, text=symbol, width=5, command=lambda s=symbol: self.add_symbol(s))
+            btn = ttk.Button(self.symbols_frame, text=symbol, width=5, command=lambda s=symbol: self.add_symbol(s), style="Custom.TButton")
             btn.grid(row=row, column=col, padx=2, pady=2)
             self.symbol_buttons[symbol] = btn
             col += 1
@@ -198,17 +245,35 @@ class AlienSymbolicInterpreterGUI:
         # Additional operators (including parentheses)
         self.operator_frame = ttk.Frame(self.build_frame)
         self.operator_frame.grid(row=3, column=0, pady=5)
-        ttk.Button(self.operator_frame, text="+", width=5, command=lambda: self.add_symbol("+")).grid(row=0, column=0, padx=2)
-        ttk.Button(self.operator_frame, text="×", width=5, command=lambda: self.add_symbol("×")).grid(row=0, column=1, padx=2)
-        ttk.Button(self.operator_frame, text="=", width=5, command=lambda: self.add_symbol("=")).grid(row=0, column=2, padx=2)
-        ttk.Button(self.operator_frame, text="→", width=5, command=lambda: self.add_symbol("→")).grid(row=0, column=3, padx=2)
-        ttk.Button(self.operator_frame, text="(", width=5, command=lambda: self.add_symbol("(")).grid(row=0, column=4, padx=2)
-        ttk.Button(self.operator_frame, text=")", width=5, command=lambda: self.add_symbol(")")).grid(row=0, column=5, padx=2)
-        ttk.Button(self.operator_frame, text="Clear", width=10, command=self.clear_expression).grid(row=0, column=6, padx=2)
+        ttk.Button(self.operator_frame, text="+", width=5, command=lambda: self.add_symbol("+"), style="Custom.TButton").grid(row=0, column=0, padx=2)
+        ttk.Button(self.operator_frame, text="×", width=5, command=lambda: self.add_symbol("×"), style="Custom.TButton").grid(row=0, column=1, padx=2)
+        ttk.Button(self.operator_frame, text="=", width=5, command=lambda: self.add_symbol("="), style="Custom.TButton").grid(row=0, column=2, padx=2)
+        ttk.Button(self.operator_frame, text="→", width=5, command=lambda: self.add_symbol("→"), style="Custom.TButton").grid(row=0, column=3, padx=2)
+        ttk.Button(self.operator_frame, text="(", width=5, command=lambda: self.add_symbol("("), style="Custom.TButton").grid(row=0, column=4, padx=2)
+        ttk.Button(self.operator_frame, text=")", width=5, command=lambda: self.add_symbol(")"), style="Custom.TButton").grid(row=0, column=5, padx=2)
+        ttk.Button(self.operator_frame, text="Clear", width=10, command=self.clear_expression, style="Custom.TButton").grid(row=0, column=6, padx=2)
 
         # Interpret built expression
-        self.interpret_build_button = ttk.Button(self.build_frame, text="Interpret Built Expression", command=self.interpret_built_expression)
+        self.interpret_build_button = ttk.Button(self.build_frame, text="Interpret Built Expression", command=self.interpret_built_expression, style="Custom.TButton")
         self.interpret_build_button.grid(row=4, column=0, pady=5)
+
+        # Simulate a Signal (movido para build_frame)
+        self.signal_label = ttk.Label(self.build_frame, text="Simulate a Signal:")
+        self.signal_label.grid(row=5, column=0, pady=5)
+        self.signal_var = tk.StringVar()
+        self.signal_dropdown = ttk.Combobox(self.build_frame, textvariable=self.signal_var, values=list(signals.keys()), width=27, state="readonly")
+        self.signal_dropdown.grid(row=6, column=0, pady=5)
+        self.run_signal_button = ttk.Button(self.build_frame, text="Run Signal", command=self.run_signal, style="Custom.TButton")
+        self.run_signal_button.grid(row=7, column=0, pady=5)
+
+        # Explain a Phenomenon (movido para build_frame)
+        self.phenomenon_label = ttk.Label(self.build_frame, text="Explain a Phenomenon:")
+        self.phenomenon_label.grid(row=8, column=0, pady=5)
+        self.phenomenon_var = tk.StringVar()
+        self.phenomenon_dropdown = ttk.Combobox(self.build_frame, textvariable=self.phenomenon_var, values=list(phenomena.keys()), width=27, state="readonly")
+        self.phenomenon_dropdown.grid(row=9, column=0, pady=5)
+        self.explain_phenomenon_button = ttk.Button(self.build_frame, text="Explain Phenomenon", command=self.explain_phenomenon, style="Custom.TButton")
+        self.explain_phenomenon_button.grid(row=10, column=0, pady=5)
 
         # Right Column: Controls
         self.controls_frame = ttk.Frame(self.main_frame)
@@ -220,19 +285,19 @@ class AlienSymbolicInterpreterGUI:
         self.dark_mode_check.grid(row=0, column=0, pady=5, sticky=(tk.W, tk.E))
 
         # List buttons
-        self.symbols_button = ttk.Button(self.controls_frame, text="List Symbols", command=self.list_symbols)
+        self.symbols_button = ttk.Button(self.controls_frame, text="List Symbols", command=self.list_symbols, style="Custom.TButton")
         self.symbols_button.grid(row=1, column=0, pady=5, sticky=(tk.W, tk.E))
-        self.phenomena_button = ttk.Button(self.controls_frame, text="List Phenomena", command=self.list_phenomena)
+        self.phenomena_button = ttk.Button(self.controls_frame, text="List Phenomena", command=self.list_phenomena, style="Custom.TButton")
         self.phenomena_button.grid(row=2, column=0, pady=5, sticky=(tk.W, tk.E))
-        self.signals_button = ttk.Button(self.controls_frame, text="List Signals", command=self.list_signals)
+        self.signals_button = ttk.Button(self.controls_frame, text="List Signals", command=self.list_signals, style="Custom.TButton")
         self.signals_button.grid(row=3, column=0, pady=5, sticky=(tk.W, tk.E))
 
         # View Mandala
-        self.mandala_button = ttk.Button(self.controls_frame, text="View Mandala", command=self.view_mandala)
+        self.mandala_button = ttk.Button(self.controls_frame, text="View Mandala", command=self.view_mandala, style="Custom.TButton")
         self.mandala_button.grid(row=4, column=0, pady=5, sticky=(tk.W, tk.E))
 
         # Tutorial
-        self.tutorial_button = ttk.Button(self.controls_frame, text="Tutorial", command=self.show_tutorial)
+        self.tutorial_button = ttk.Button(self.controls_frame, text="Tutorial", command=self.show_tutorial, style="Custom.TButton")
         self.tutorial_button.grid(row=5, column=0, pady=5, sticky=(tk.W, tk.E))
 
         # Manual Expression Input
@@ -240,7 +305,7 @@ class AlienSymbolicInterpreterGUI:
         self.expression_label.grid(row=6, column=0, pady=5)
         self.expression_entry = ttk.Entry(self.controls_frame, width=30)
         self.expression_entry.grid(row=7, column=0, pady=5)
-        self.interpret_button = ttk.Button(self.controls_frame, text="Interpret Manual", command=self.interpret_expression)
+        self.interpret_button = ttk.Button(self.controls_frame, text="Interpret Manual", command=self.interpret_expression, style="Custom.TButton")
         self.interpret_button.grid(row=8, column=0, pady=5, sticky=(tk.W, tk.E))
 
         # Expression History
@@ -249,35 +314,17 @@ class AlienSymbolicInterpreterGUI:
         self.history_var = tk.StringVar()
         self.history_dropdown = ttk.Combobox(self.controls_frame, textvariable=self.history_var, values=["(No history yet)"], width=27, state="readonly")
         self.history_dropdown.grid(row=10, column=0, pady=5)
-        self.history_button = ttk.Button(self.controls_frame, text="Run Selected", command=self.run_history_expression)
+        self.history_button = ttk.Button(self.controls_frame, text="Run Selected", command=self.run_history_expression, style="Custom.TButton")
         self.history_button.grid(row=11, column=0, pady=5, sticky=(tk.W, tk.E))
-
-        # Run Signal
-        self.signal_label = ttk.Label(self.controls_frame, text="Simulate a Signal:")
-        self.signal_label.grid(row=12, column=0, pady=5)
-        self.signal_var = tk.StringVar()
-        self.signal_dropdown = ttk.Combobox(self.controls_frame, textvariable=self.signal_var, values=list(signals.keys()), width=27, state="readonly")
-        self.signal_dropdown.grid(row=13, column=0, pady=5)
-        self.run_signal_button = ttk.Button(self.controls_frame, text="Run Signal", command=self.run_signal)
-        self.run_signal_button.grid(row=14, column=0, pady=5, sticky=(tk.W, tk.E))
-
-        # Explain Phenomenon
-        self.phenomenon_label = ttk.Label(self.controls_frame, text="Explain a Phenomenon:")
-        self.phenomenon_label.grid(row=15, column=0, pady=5)
-        self.phenomenon_var = tk.StringVar()
-        self.phenomenon_dropdown = ttk.Combobox(self.controls_frame, textvariable=self.phenomenon_var, values=list(phenomena.keys()), width=27, state="readonly")
-        self.phenomenon_dropdown.grid(row=16, column=0, pady=5)
-        self.explain_phenomenon_button = ttk.Button(self.controls_frame, text="Explain Phenomenon", command=self.explain_phenomenon)
-        self.explain_phenomenon_button.grid(row=17, column=0, pady=5, sticky=(tk.W, tk.E))
 
         # Favorites
         self.favorites_label = ttk.Label(self.controls_frame, text="Favorites:")
-        self.favorites_label.grid(row=18, column=0, pady=5)
+        self.favorites_label.grid(row=12, column=0, pady=5)
         self.favorites_var = tk.StringVar()
         self.favorites_dropdown = ttk.Combobox(self.controls_frame, textvariable=self.favorites_var, values=self.get_favorites_list(), width=27, state="readonly")
-        self.favorites_dropdown.grid(row=19, column=0, pady=5)
-        self.favorites_button = ttk.Button(self.controls_frame, text="Run Favorite", command=self.run_favorite)
-        self.favorites_button.grid(row=20, column=0, pady=5, sticky=(tk.W, tk.E))
+        self.favorites_dropdown.grid(row=13, column=0, pady=5)
+        self.favorites_button = ttk.Button(self.controls_frame, text="Run Favorite", command=self.run_favorite, style="Custom.TButton")
+        self.favorites_button.grid(row=14, column=0, pady=5, sticky=(tk.W, tk.E))
 
         # Apply styles *after* all widgets are created
         self.configure_styles()
@@ -288,8 +335,8 @@ class AlienSymbolicInterpreterGUI:
             self.root.configure(bg="#1a1a2e")
             self.style.configure("TFrame", background="#1a1a2e")
             self.style.configure("TLabel", background="#1a1a2e", foreground="white")
-            self.style.configure("TButton", background="#16213e", foreground="white", fieldbackground="#16213e")
-            self.style.map("TButton", background=[("active", "#0f3460")], foreground=[("active", "white")])
+            self.style.configure("Custom.TButton", background="#16213e", foreground="white", bordercolor="#16213e", focusthickness=0)
+            self.style.map("Custom.TButton", background=[("active", "#0f3460")], foreground=[("active", "white")])
             self.style.configure("TEntry", fieldbackground="#0f3460", foreground="white")
             self.style.configure("TCombobox", fieldbackground="#0f3460", foreground="white")
             self.style.map("TCombobox", fieldbackground=[("readonly", "#0f3460")], selectbackground=[("readonly", "#0f3460")])
@@ -303,8 +350,8 @@ class AlienSymbolicInterpreterGUI:
             self.root.configure(bg="white")
             self.style.configure("TFrame", background="white")
             self.style.configure("TLabel", background="white", foreground="black")
-            self.style.configure("TButton", background="#e0e0e0", foreground="black", fieldbackground="#e0e0e0")
-            self.style.map("TButton", background=[("active", "#d0d0d0")], foreground=[("active", "black")])
+            self.style.configure("Custom.TButton", background="#e0e0e0", foreground="black", bordercolor="#e0e0e0", focusthickness=0)
+            self.style.map("Custom.TButton", background=[("active", "#d0d0d0")], foreground=[("active", "black")])
             self.style.configure("TEntry", fieldbackground="white", foreground="black")
             self.style.configure("TCombobox", fieldbackground="white", foreground="black")
             self.style.map("TCombobox", fieldbackground=[("readonly", "white")], selectbackground=[("readonly", "white")])
@@ -320,322 +367,262 @@ class AlienSymbolicInterpreterGUI:
 
     def add_symbol(self, symbol):
         self.current_expression.append(symbol)
-        self.update_expression_display()
+        self.expression_display.config(text=f"Current Expression: {' '.join(self.current_expression)}")
 
     def clear_expression(self):
         self.current_expression = []
-        self.update_expression_display()
-
-    def update_expression_display(self):
-        if not self.current_expression:
-            self.expression_display.config(text="Current Expression: (empty)")
-        else:
-            self.expression_display.config(text=f"Current Expression: {' '.join(self.current_expression)}")
-
-    def get_timestamp(self):
-        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    def check_phenomenon(self, expression):
-        # Check if the expression matches any phenomenon
-        for pheno, (eq, meaning) in phenomena.items():
-            if expression == eq:
-                self.phenomena_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
-                self.phenomena_output.insert(tk.END, f"{pheno}\n", "phenomenon")
-                self.phenomena_output.insert(tk.END, f"{eq}\n", "equation")
-                self.phenomena_output.insert(tk.END, f"→ {meaning}\n", "result")
-                self.phenomena_output.insert(tk.END, "---\n", "separator")
-                self.phenomena_output.see(tk.END)
-                break
+        self.expression_display.config(text="Current Expression: (empty)")
 
     def interpret_built_expression(self):
         if not self.current_expression:
-            self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
-            self.expressions_output.insert(tk.END, "Please build an expression using the symbols above.\n", "error")
-            self.expressions_output.insert(tk.END, "---\n", "separator")
+            self.expressions_output.insert(tk.END, "[Error] No expression to interpret.\n", "error")
             return
         expression = " ".join(self.current_expression)
+        self.context = {}  # Reset context for a new interpretation
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         result = interpret(expression, self.context)
-        self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
-        self.expressions_output.insert(tk.END, f">>> {expression}\n", "equation")
-        self.expressions_output.insert(tk.END, f"{result}\n", "result")
-        self.expressions_output.insert(tk.END, "---\n", "separator")
-        self.expressions_output.see(tk.END)
+        self.expressions_output.insert(tk.END, f"[{timestamp}] >>> {expression}\n{result}\n", "equation")
+        self.expressions_output.insert(tk.END, "-" * 50 + "\n", "separator")
         self.expression_history.append(expression)
-        self.history_dropdown["values"] = self.expression_history
-        # Check if the expression matches a phenomenon
-        self.check_phenomenon(expression)
+        self.history_dropdown.config(values=self.expression_history)
+        self.check_phenomena(expression)
 
     def interpret_expression(self):
         expression = self.expression_entry.get().strip()
         if not expression:
-            self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
-            self.expressions_output.insert(tk.END, "Please enter a symbolic expression.\n", "error")
-            self.expressions_output.insert(tk.END, "---\n", "separator")
+            self.expressions_output.insert(tk.END, "[Error] Please enter an expression.\n", "error")
             return
+        self.context = {}  # Reset context for a new interpretation
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         result = interpret(expression, self.context)
-        self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
-        self.expressions_output.insert(tk.END, f">>> {expression}\n", "equation")
-        self.expressions_output.insert(tk.END, f"{result}\n", "result")
-        self.expressions_output.insert(tk.END, "---\n", "separator")
-        self.expressions_output.see(tk.END)
+        self.expressions_output.insert(tk.END, f"[{timestamp}] >>> {expression}\n{result}\n", "equation")
+        self.expressions_output.insert(tk.END, "-" * 50 + "\n", "separator")
         self.expression_history.append(expression)
-        self.history_dropdown["values"] = self.expression_history
-        # Check if the expression matches a phenomenon
-        self.check_phenomenon(expression)
+        self.history_dropdown.config(values=self.expression_history)
+        self.check_phenomena(expression)
 
     def run_history_expression(self):
-        expression = self.history_var.get()
-        if not expression or expression == "(No history yet)":
-            self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
-            self.expressions_output.insert(tk.END, "Please select an expression from the history.\n", "error")
-            self.expressions_output.insert(tk.END, "---\n", "separator")
+        selected_expression = self.history_var.get()
+        if not selected_expression or selected_expression == "(No history yet)":
+            self.expressions_output.insert(tk.END, "[Error] No expression selected from history.\n", "error")
             return
-        result = interpret(expression, self.context)
-        self.expressions_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
-        self.expressions_output.insert(tk.END, f">>> {expression}\n", "equation")
-        self.expressions_output.insert(tk.END, f"{result}\n", "result")
-        self.expressions_output.insert(tk.END, "---\n", "separator")
-        self.expressions_output.see(tk.END)
-        # Check if the expression matches a phenomenon
-        self.check_phenomenon(expression)
+        self.context = {}  # Reset context for a new interpretation
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        result = interpret(selected_expression, self.context)
+        self.expressions_output.insert(tk.END, f"[{timestamp}] >>> {selected_expression}\n{result}\n", "equation")
+        self.expressions_output.insert(tk.END, "-" * 50 + "\n", "separator")
+        self.check_phenomena(selected_expression)
+
+    def check_phenomena(self, expression):
+        for phenomenon, (symbolic_expression, explanation) in phenomena.items():
+            if expression == symbolic_expression:
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.phenomena_output.insert(tk.END, f"[{timestamp}] Phenomenon Detected: {phenomenon}\n", "phenomenon")
+                self.phenomena_output.insert(tk.END, f"Expression: {expression}\nExplanation: {explanation}\n", "equation")
+                self.phenomena_output.insert(tk.END, "-" * 50 + "\n", "separator")
+
+    def run_signal(self):
+        signal_name = self.signal_var.get()
+        if not signal_name:
+            self.signals_output.insert(tk.END, "[Error] Please select a signal to simulate.\n", "error")
+            return
+        signal_expressions = signals.get(signal_name, [])
+        self.context = {}  # Reset context for a new simulation
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.signals_output.insert(tk.END, f"[{timestamp}] Simulating Signal: {signal_name}\n", "equation")
+        for expr in signal_expressions:
+            result = interpret(expr, self.context)
+            self.signals_output.insert(tk.END, f"Expression: {expr}\n{result}\n", "equation")
+        self.signals_output.insert(tk.END, "-" * 50 + "\n", "separator")
+
+    def explain_phenomenon(self):
+        phenomenon_name = self.phenomenon_var.get()
+        if not phenomenon_name:
+            self.phenomena_output.insert(tk.END, "[Error] Please select a phenomenon to explain.\n", "error")
+            return
+        symbolic_expression, explanation = phenomena.get(phenomenon_name, ("Unknown", "No explanation available."))
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.phenomena_output.insert(tk.END, f"[{timestamp}] Phenomenon: {phenomenon_name}\n", "phenomenon")
+        self.phenomena_output.insert(tk.END, f"Symbolic Expression: {symbolic_expression}\nExplanation: {explanation}\n", "equation")
+        self.phenomena_output.insert(tk.END, "-" * 50 + "\n", "separator")
 
     def list_symbols(self):
         popup = tk.Toplevel(self.root)
-        popup.title("Available Symbols")
-        popup.geometry("500x400")
+        popup.title("List of Symbols")
+        popup.geometry("400x400")
         popup.configure(bg="#1a1a2e" if self.dark_mode else "white")
-
-        tree = ttk.Treeview(popup, columns=("Symbol", "Meaning"), show="headings")
-        tree.heading("Symbol", text="Symbol")
-        tree.heading("Meaning", text="Meaning")
-        tree.column("Symbol", width=100, anchor="center")
-        tree.column("Meaning", width=350)
-
-        for symbol, func in symbols.items():
-            func(self.context)
-            tree.insert("", tk.END, values=(symbol, self.context.get(symbol)), tags=("symbol",))
-        
-        tree.tag_configure("symbol", foreground="#00BFFF" if self.dark_mode else "#4682B4")
-        tree.pack(expand=True, fill="both", padx=10, pady=10)
+        text = scrolledtext.ScrolledText(popup, width=50, height=20, wrap=tk.WORD, bg="#0f3460" if self.dark_mode else "white", fg="white" if self.dark_mode else "black")
+        text.pack(pady=10)
+        for symbol in symbols.keys():
+            self.context = {}
+            symbols[symbol](self.context)
+            text.insert(tk.END, f"{symbol}: {self.context.get(symbol, 'No description')}\n")
+        text.config(state="disabled")
+        ttk.Button(popup, text="Close", command=popup.destroy, style="Custom.TButton").pack(pady=5)
 
     def list_phenomena(self):
         popup = tk.Toplevel(self.root)
-        popup.title("Known Cosmic Phenomena")
+        popup.title("List of Phenomena")
         popup.geometry("600x400")
         popup.configure(bg="#1a1a2e" if self.dark_mode else "white")
-
-        tree = ttk.Treeview(popup, columns=("Phenomenon", "Equation", "Meaning", "Favorite"), show="headings")
-        tree.heading("Phenomenon", text="Phenomenon")
-        tree.heading("Equation", text="Equation")
-        tree.heading("Meaning", text="Meaning")
-        tree.heading("Favorite", text="Favorite")
-        tree.column("Phenomenon", width=200)
-        tree.column("Equation", width=150)
-        tree.column("Meaning", width=200)
-        tree.column("Favorite", width=50)
-
-        for name, (eq, meaning) in phenomena.items():
-            tree.insert("", tk.END, values=(name, eq, meaning, "Add" if name not in self.favorites["phenomena"] else "Remove"), tags=("phenomenon", name))
-        
-        tree.tag_configure("phenomenon", foreground="darkgreen")
-        tree.bind("<Double-1>", lambda event: self.toggle_favorite(event, "phenomena"))
-        tree.pack(expand=True, fill="both", padx=10, pady=10)
+        text = scrolledtext.ScrolledText(popup, width=70, height=20, wrap=tk.WORD, bg="#0f3460" if self.dark_mode else "white", fg="white" if self.dark_mode else "black")
+        text.pack(pady=10)
+        for phenomenon, (symbolic_expression, explanation) in phenomena.items():
+            favorite_marker = "★" if phenomenon in self.favorites["phenomena"] else "☆"
+            text.insert(tk.END, f"{favorite_marker} {phenomenon}: {symbolic_expression}\nExplanation: {explanation}\n\n")
+        text.config(state="normal")  # Allow clicking to toggle favorites
+        text.tag_configure("phenomenon", font=("Arial", 10, "bold"))
+        text.bind("<Double-1>", lambda event: self.toggle_favorite_phenomenon(text, event))
+        ttk.Button(popup, text="Close", command=popup.destroy, style="Custom.TButton").pack(pady=5)
 
     def list_signals(self):
         popup = tk.Toplevel(self.root)
-        popup.title("Available Signals")
-        popup.geometry("300x200")
+        popup.title("List of Signals")
+        popup.geometry("400x400")
         popup.configure(bg="#1a1a2e" if self.dark_mode else "white")
+        text = scrolledtext.ScrolledText(popup, width=50, height=20, wrap=tk.WORD, bg="#0f3460" if self.dark_mode else "white", fg="white" if self.dark_mode else "black")
+        text.pack(pady=10)
+        for signal, expressions in signals.items():
+            favorite_marker = "★" if signal in self.ffavorites["signals"] else "☆"
+            text.insert(tk.END, f"{favorite_marker} {signal}: {', '.join(expressions)}\n")
+        text.config(state="normal")  # Allow clicking to toggle favorites
+        text.bind("<Double-1>", lambda event: self.toggle_favorite_signal(text, event))
+        ttk.Button(popup, text="Close", command=popup.destroy, style="Custom.TButton").pack(pady=5)
 
-        tree = ttk.Treeview(popup, columns=("Signal", "Favorite"), show="headings")
-        tree.heading("Signal", text="Signal")
-        tree.heading("Favorite", text="Favorite")
-        tree.column("Signal", width=150, anchor="center")
-        tree.column("Favorite", width=50)
-
-        for name in signals:
-            tree.insert("", tk.END, values=(name, "Add" if name not in self.favorites["signals"] else "Remove"), tags=("signal", name))
-        
-        tree.bind("<Double-1>", lambda event: self.toggle_favorite(event, "signals"))
-        tree.pack(expand=True, fill="both", padx=10, pady=10)
-
-    def toggle_favorite(self, event, category):
-        tree = event.widget
-        item = tree.selection()[0]
-        name = tree.item(item, "values")[0]
-        if category == "phenomena":
-            if name in self.favorites["phenomena"]:
-                self.favorites["phenomena"].remove(name)
-                tree.set(item, "Favorite", "Add")
+    def toggle_favorite_phenomenon(self, text_widget, event):
+        index = text_widget.index(f"{event.x},{event.y} linestart")
+        line = text_widget.get(index, f"{index} lineend")
+        phenomenon_name = line.split(":")[0].strip()[2:]  # Remove the ★/☆ marker
+        if phenomenon_name in phenomena:
+            if phenomenon_name in self.favorites["phenomena"]:
+                self.favorites["phenomena"].remove(phenomenon_name)
             else:
-                self.favorites["phenomena"].append(name)
-                tree.set(item, "Favorite", "Remove")
-        elif category == "signals":
-            if name in self.favorites["signals"]:
-                self.favorites["signals"].remove(name)
-                tree.set(item, "Favorite", "Add")
+                self.favorites["phenomena"].append(phenomenon_name)
+            self.save_favorites()
+            self.update_favorites_output()
+            self.favorites_dropdown.config(values=self.get_favorites_list())
+            # Update the list in the popup
+            text_widget.delete("1.0", tk.END)
+            for phenomenon, (symbolic_expression, explanation) in phenomena.items():
+                favorite_marker = "★" if phenomenon in self.favorites["phenomena"] else "☆"
+                text_widget.insert(tk.END, f"{favorite_marker} {phenomenon}: {symbolic_expression}\nExplanation: {explanation}\n\n")
+
+    def toggle_favorite_signal(self, text_widget, event):
+        index = text_widget.index(f"{event.x},{event.y} linestart")
+        line = text_widget.get(index, f"{index} lineend")
+        signal_name = line.split(":")[0].strip()[2:]  # Remove the ★/☆ marker
+        if signal_name in signals:
+            if signal_name in self.favorites["signals"]:
+                self.favorites["signals"].remove(signal_name)
             else:
-                self.favorites["signals"].append(name)
-                tree.set(item, "Favorite", "Remove")
-        self.save_favorites()
-        self.favorites_dropdown["values"] = self.get_favorites_list()
-        self.update_favorites_output()
-
-    def update_favorites_output(self):
-        self.favorites_output.delete(1.0, tk.END)
-        self.favorites_output.insert(tk.END, "Your favorite phenomena and signals will appear here.\n")
-        self.favorites_output.insert(tk.END, "Double-click items in 'List Phenomena' or 'List Signals' to add/remove favorites.\n")
-        self.favorites_output.insert(tk.END, "Select a favorite from the dropdown and click 'Run Favorite' to execute.\n\n")
-        if self.favorites["phenomena"]:
-            self.favorites_output.insert(tk.END, "Favorite Phenomena:\n", "info")
-            for pheno in self.favorites["phenomena"]:
-                self.favorites_output.insert(tk.END, f"- {pheno}\n")
-        if self.favorites["signals"]:
-            self.favorites_output.insert(tk.END, "Favorite Signals:\n", "info")
-            for sig in self.favorites["signals"]:
-                self.favorites_output.insert(tk.END, f"- {sig}\n")
-        self.favorites_output.insert(tk.END, "---\n", "separator")
-
-    def load_favorites(self):
-        if os.path.exists("favorites.json"):
-            with open("favorites.json", "r") as f:
-                self.favorites = json.load(f)
+                self.favorites["signals"].append(signal_name)
+            self.save_favorites()
+            self.update_favorites_output()
+            self.favorites_dropdown.config(values=self.get_favorites_list())
+            # Update the list in the popup
+            text_widget.delete("1.0", tk.END)
+            for signal, expressions in signals.items():
+                favorite_marker = "★" if signal in self.favorites["signals"] else "☆"
+                text_widget.insert(tk.END, f"{favorite_marker} {signal}: {', '.join(expressions)}\n")
 
     def save_favorites(self):
         with open("favorites.json", "w") as f:
             json.dump(self.favorites, f)
 
+    def load_favorites(self):
+        try:
+            with open("favorites.json", "r") as f:
+                self.favorites = json.load(f)
+        except FileNotFoundError:
+            self.favorites = {"phenomena": [], "signals": []}
+
     def get_favorites_list(self):
         favorites_list = []
-        for pheno in self.favorites["phenomena"]:
-            favorites_list.append(f"Phenomenon: {pheno}")
-        for sig in self.favorites["signals"]:
-            favorites_list.append(f"Signal: {sig}")
+        for phenomenon in self.favorites["phenomena"]:
+            favorites_list.append(f"Phenomenon: {phenomenon}")
+        for signal in self.favorites["signals"]:
+            favorites_list.append(f"Signal: {signal}")
         return favorites_list if favorites_list else ["(No favorites yet)"]
 
+    def update_favorites_output(self):
+        self.favorites_output.delete("1.0", tk.END)
+        self.favorites_output.insert(tk.END, "Your favorite phenomena and signals will appear here.\n")
+        self.favorites_output.insert(tk.END, "Double-click items in 'List Phenomena' or 'List Signals' to add/remove favorites.\n")
+        self.favorites_output.insert(tk.END, "Select a favorite from the dropdown and click 'Run Favorite' to execute.\n\n")
+        if self.favorites["phenomena"]:
+            self.favorites_output.insert(tk.END, "Favorite Phenomena:\n", "info")
+            for phenomenon in self.favorites["phenomena"]:
+                symbolic_expression, explanation = phenomena.get(phenomenon, ("Unknown", "No explanation available."))
+                self.favorites_output.insert(tk.END, f"- {phenomenon}: {symbolic_expression}\n")
+            self.favorites_output.insert(tk.END, "\n")
+        if self.favorites["signals"]:
+            self.favorites_output.insert(tk.END, "Favorite Signals:\n", "info")
+            for signal in self.favorites["signals"]:
+                expressions = signals.get(signal, [])
+                self.favorites_output.insert(tk.END, f"- {signal}: {', '.join(expressions)}\n")
+        self.favorites_output.insert(tk.END, "-" * 50 + "\n", "separator")
+
     def run_favorite(self):
-        favorite = self.favorites_var.get()
-        if not favorite or favorite == "(No favorites yet)":
-            self.favorites_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
-            self.favorites_output.insert(tk.END, "Please select a favorite to run.\n", "error")
-            self.favorites_output.insert(tk.END, "---\n", "separator")
+        selected_favorite = self.favorites_var.get()
+        if not selected_favorite or selected_favorite == "(No favorites yet)":
+            self.favorites_output.insert(tk.END, "[Error] No favorite selected.\n", "error")
             return
-        if favorite.startswith("Phenomenon: "):
-            pheno = favorite.replace("Phenomenon: ", "")
-            if pheno in phenomena:
-                eq, meaning = phenomena[pheno]
-                self.phenomena_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
-                self.phenomena_output.insert(tk.END, f"{pheno}\n", "phenomenon")
-                self.phenomena_output.insert(tk.END, f"{eq}\n", "equation")
-                self.phenomena_output.insert(tk.END, f"→ {meaning}\n", "result")
-                self.phenomena_output.insert(tk.END, "---\n", "separator")
-                self.phenomena_output.see(tk.END)
-                self.favorites_output.insert(tk.END, f"[{self.get_timestamp()}] Result shown in Phenomena tab.\n", "info")
-                self.favorites_output.insert(tk.END, "---\n", "separator")
-        elif favorite.startswith("Signal: "):
-            sig_name = favorite.replace("Signal: ", "")
-            if sig_name in signals:
-                for line in signals[sig_name]:
-                    result = interpret(line, self.context)
-                    self.signals_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
-                    self.signals_output.insert(tk.END, f">>> {line}\n", "equation")
-                    self.signals_output.insert(tk.END, f"{result}\n", "result")
-                    self.signals_output.insert(tk.END, "---\n", "separator")
-                    self.signals_output.see(tk.END)
-                self.favorites_output.insert(tk.END, f"[{self.get_timestamp()}] Result shown in Signals tab.\n", "info")
-                self.favorites_output.insert(tk.END, "---\n", "separator")
-
-    def run_signal(self):
-        sig_name = self.signal_var.get()
-        if not sig_name:
-            self.signals_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
-            self.signals_output.insert(tk.END, "Please select a signal to simulate.\n", "error")
-            self.signals_output.insert(tk.END, "---\n", "separator")
-            return
-        if sig_name in signals:
-            for line in signals[sig_name]:
-                result = interpret(line, self.context)
-                self.signals_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
-                self.signals_output.insert(tk.END, f">>> {line}\n", "equation")
-                self.signals_output.insert(tk.END, f"{result}\n", "result")
-                self.signals_output.insert(tk.END, "---\n", "separator")
-                self.signals_output.see(tk.END)
-        else:
-            self.signals_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
-            self.signals_output.insert(tk.END, f"Unknown signal: {sig_name}\n", "error")
-            self.signals_output.insert(tk.END, "---\n", "separator")
-        self.signals_output.see(tk.END)
-
-    def explain_phenomenon(self):
-        pheno = self.phenomenon_var.get()
-        if not pheno:
-            self.phenomena_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
-            self.phenomena_output.insert(tk.END, "Please select a phenomenon to explain.\n", "error")
-            self.phenomena_output.insert(tk.END, "---\n", "separator")
-            return
-        if pheno in phenomena:
-            eq, meaning = phenomena[pheno]
-            self.phenomena_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
-            self.phenomena_output.insert(tk.END, f"{pheno}\n", "phenomenon")
-            self.phenomena_output.insert(tk.END, f"{eq}\n", "equation")
-            self.phenomena_output.insert(tk.END, f"→ {meaning}\n", "result")
-            self.phenomena_output.insert(tk.END, "---\n", "separator")
-        else:
-            self.phenomena_output.insert(tk.END, f"[{self.get_timestamp()}] ", "timestamp")
-            self.phenomena_output.insert(tk.END, f"Unknown phenomenon: {pheno}\n", "error")
-            self.phenomena_output.insert(tk.END, "---\n", "separator")
-        self.phenomena_output.see(tk.END)
+        if selected_favorite.startswith("Phenomenon: "):
+            phenomenon_name = selected_favorite[len("Phenomenon: "):]
+            self.phenomenon_var.set(phenomenon_name)
+            self.explain_phenomenon()
+        elif selected_favorite.startswith("Signal: "):
+            signal_name = selected_favorite[len("Signal: "):]
+            self.signal_var.set(signal_name)
+            self.run_signal()
 
     def clear_output(self):
-        current_tab = self.output_notebook.index(self.output_notebook.select())
-        if current_tab == 0:  # Expressions tab
-            self.expressions_output.delete(1.0, tk.END)
-            self.expressions_output.insert(tk.END, "Expression results will appear here.\n\n")
-        elif current_tab == 1:  # Signals tab
-            self.signals_output.delete(1.0, tk.END)
-            self.signals_output.insert(tk.END, "Signal simulation results will appear here.\n\n")
-        elif current_tab == 2:  # Phenomena tab
-            self.phenomena_output.delete(1.0, tk.END)
-            self.phenomena_output.insert(tk.END, "Phenomena explanations will appear here.\n\n")
-        elif current_tab == 3:  # Favorites tab
-            self.favorites_output.delete(1.0, tk.END)
-            self.favorites_output.insert(tk.END, "Your favorite phenomena and signals will appear here.\n")
-            self.favorites_output.insert(tk.END, "Double-click items in 'List Phenomena' or 'List Signals' to add/remove favorites.\n")
-            self.favorites_output.insert(tk.END, "Select a favorite from the dropdown and click 'Run Favorite' to execute.\n\n")
-            self.update_favorites_output()
+        self.expressions_output.delete("1.0", tk.END)
+        self.signals_output.delete("1.0", tk.END)
+        self.phenomena_output.delete("1.0", tk.END)
+        self.favorites_output.delete("1.0", tk.END)
+        self.expressions_output.insert(tk.END, "Expression results will appear here.\n\n")
+        self.signals_output.insert(tk.END, "Signal simulation results will appear here.\n\n")
+        self.phenomena_output.insert(tk.END, "Phenomena explanations will appear here.\n\n")
+        self.update_favorites_output()
 
     def export_output(self):
-        current_tab = self.output_notebook.index(self.output_notebook.select())
-        if current_tab == 0:  # Expressions tab
-            content = self.expressions_output.get(1.0, tk.END)
-            filename = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
-        elif current_tab == 1:  # Signals tab
-            content = self.signals_output.get(1.0, tk.END)
-            filename = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
-        elif current_tab == 2:  # Phenomena tab
-            content = self.phenomena_output.get(1.0, tk.END)
-            filename = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
-        elif current_tab == 3:  # Favorites tab
-            content = self.favorites_output.get(1.0, tk.END)
-            filename = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
-        else:
+        file_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
+        if not file_path:
             return
-        if filename:
-            with open(filename, "w", encoding="utf-8") as f:
-                f.write(content)
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write("=== Expressions ===\n")
+            f.write(self.expressions_output.get("1.0", tk.END))
+            f.write("\n=== Signals ===\n")
+            f.write(self.signals_output.get("1.0", tk.END))
+            f.write("\n=== Phenomena ===\n")
+            f.write(self.phenomena_output.get("1.0", tk.END))
+            f.write("\n=== Favorites ===\n")
+            f.write(self.favorites_output.get("1.0", tk.END))
+        self.favorites_output.insert(tk.END, f"[Info] Output exported to {file_path}\n", "info")
+
+    def view_mandala(self):
+        popup = tk.Toplevel(self.root)
+        popup.title("Symbolic Mandala")
+        popup.geometry("400x400")
+        popup.configure(bg="#1a1a2e" if self.dark_mode else "white")
+        canvas = tk.Canvas(popup, width=300, height=300, bg="#0f3460" if self.dark_mode else "white", highlightthickness=0)
+        canvas.pack(pady=20)
+        num_symbols = len(symbols)
+        radius = 100
+        center_x, center_y = 150, 150
+        for i, symbol in enumerate(symbols.keys()):
+            angle = (2 * math.pi * i) / num_symbols
+            x = center_x + radius * math.cos(angle)
+            y = center_y + radius * math.sin(angle)
+            canvas.create_text(x, y, text=symbol, font=("Arial", 12), fill="white" if self.dark_mode else "black")
+        ttk.Button(popup, text="Close", command=popup.destroy, style="Custom.TButton").pack(pady=5)
 
     def show_tutorial(self):
-        popup = tk.Toplevel(self.root)
-        popup.title("Tutorial")
-        popup.geometry("500x400")
-        popup.configure(bg="#1a1a2e" if self.dark_mode else "white")
-
-        tutorial_text = scrolledtext.ScrolledText(popup, width=60, height=20, wrap=tk.WORD, bg="#0f3460" if self.dark_mode else "white", fg="white" if self.dark_mode else "black")
-        tutorial_text.pack(padx=10, pady=10, expand=True, fill="both")
-
         tutorial_content = (
+            "# Alien Symbolic Interpreter Tutorial\n\n"
             "Welcome to the Alien Symbolic Interpreter!\n\n"
-            "Follow these steps to explore the language of shapes:\n\n"
+            "## Follow these steps to explore the language of shapes:\n\n"
             "1. **Build an Expression**:\n"
             "   - Click the symbols in the center panel to build an expression (e.g., Ψ + ∴ = ◐).\n"
             "   - Use the operator buttons (+, ×, =, →, (, )) to add operators.\n"
@@ -661,58 +648,31 @@ class AlienSymbolicInterpreterGUI:
             "   - Select an expression and click 'Run Selected' to re-run it.\n\n"
             "Enjoy exploring the universe through shapes!"
         )
-        tutorial_text.insert(tk.END, tutorial_content)
-        tutorial_text.config(state="disabled")
 
-    def view_mandala(self):
+        # Salvar o tutorial como tutorial.md
+        tutorial_path = os.path.join(os.path.dirname(__file__), "tutorial.md")
+        with open(tutorial_path, "w", encoding="utf-8") as f:
+            f.write(tutorial_content)
+
+        # Exibir mensagem informando que o tutorial foi salvo
         popup = tk.Toplevel(self.root)
-        popup.title("Symbolic Mandala")
-        popup.geometry("500x500")
-        popup.configure(bg="#1a1a2e")  # Fixed dark mode style
+        popup.title("Tutorial Saved")
+        popup.geometry("400x150")
+        popup.configure(bg="#1a1a2e" if self.dark_mode else "white")
 
-        canvas = tk.Canvas(popup, width=500, height=500, bg="#0f3460", highlightthickness=0)
-        canvas.pack(expand=True, fill="both")
+        message = ttk.Label(
+            popup,
+            text=f"Tutorial has been saved as 'tutorial.md' in:\n{tutorial_path}\n\nOpen it with any text editor or Markdown viewer.",
+            wraplength=350,
+            background="#1a1a2e" if self.dark_mode else "white",
+            foreground="white" if self.dark_mode else "black"
+        )
+        message.pack(pady=20)
 
-        # Draw some stars in the background
-        for _ in range(50):
-            x = random.randint(0, 500)
-            y = random.randint(0, 500)
-            canvas.create_oval(x, y, x+2, y+2, fill="white", outline="white")
+        close_button = ttk.Button(popup, text="Close", command=popup.destroy, style="Custom.TButton")
+        close_button.pack(pady=10)
 
-        # Center of the mandala
-        center_x, center_y = 250, 250
-        radius = 150
-
-        # Position symbols in a circle
-        symbol_list = list(symbols.keys())
-        num_symbols = len(symbol_list)
-        for i, symbol in enumerate(symbol_list):
-            angle = 2 * math.pi * i / num_symbols
-            x = center_x + radius * math.cos(angle)
-            y = center_y + radius * math.sin(angle)
-            canvas.create_text(x, y, text=symbol, font=("Arial", 16), fill="lightblue", tags=("symbol", symbol))
-
-        # Draw connections between related symbols
-        connections = [
-            ("⧗", "∴"),  # Entanglement and states
-            ("Ψ", "✧"),  # Quantum potential and collapse
-            ("꩜", "●"),  # Dimensional fold and universe
-            ("∞", "⇧"),  # Infinite potential and expansion
-        ]
-
-        for sym1, sym2 in connections:
-            if sym1 in symbol_list and sym2 in symbol_list:
-                idx1 = symbol_list.index(sym1)
-                idx2 = symbol_list.index(sym2)
-                angle1 = 2 * math.pi * idx1 / num_symbols
-                angle2 = 2 * math.pi * idx2 / num_symbols
-                x1 = center_x + radius * math.cos(angle1)
-                y1 = center_y + radius * math.sin(angle1)
-                x2 = center_x + radius * math.cos(angle2)
-                y2 = center_y + radius * math.sin(angle2)
-                canvas.create_line(x1, y1, x2, y2, fill="yellow", dash=(2, 2))
-
-# Run the GUI
+# Run the application
 if __name__ == "__main__":
     root = tk.Tk()
     app = AlienSymbolicInterpreterGUI(root)
