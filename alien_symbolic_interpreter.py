@@ -433,67 +433,67 @@ class AlienSymbolicInterpreterGUI:
             self.expressions_output.insert(tk.END, f"Error: {str(e)}\n", "error")
             self.expressions_output.insert(tk.END, "---\n", "separator")
 
-  def list_symbols(self):
-      popup = tk.Toplevel(self.root)
-      popup.title("Available Symbols")
-      popup.geometry("500x400")
-      popup.configure(bg="#1a1a2e")
+    def list_symbols(self):
+        popup = tk.Toplevel(self.root)
+        popup.title("Available Symbols")
+        popup.geometry("500x400")
+        popup.configure(bg="#1a1a2e")
 
-      tree = ttk.Treeview(popup, columns=("Symbol", "Meaning"), show="headings")
-      tree.heading("Symbol", text="Symbol")
-      tree.heading("Meaning", text="Meaning")
-      tree.column("Symbol", width=100, anchor="center")
-      tree.column("Meaning", width=350)
+        tree = ttk.Treeview(popup, columns=("Symbol", "Meaning"), show="headings")
+        tree.heading("Symbol", text="Symbol")
+        tree.heading("Meaning", text="Meaning")
+        tree.column("Symbol", width=100, anchor="center")
+        tree.column("Meaning", width=350)
 
-      for symbol, func in symbols.items():
-          self.context = {}
-          func(self.context)
-          tree.insert("", tk.END, values=(symbol, self.context.get(symbol)), tags=("symbol",))
-      
-      tree.tag_configure("symbol", foreground="#00BFFF")
-      tree.pack(expand=True, fill="both", padx=10, pady=10)
+        for symbol, func in symbols.items():
+            self.context = {}
+            func(self.context)
+            tree.insert("", tk.END, values=(symbol, self.context.get(symbol)), tags=("symbol",))
+        
+        tree.tag_configure("symbol", foreground="#00BFFF")
+        tree.pack(expand=True, fill="both", padx=10, pady=10)
 
-  def list_phenomena(self):
-      popup = tk.Toplevel(self.root)
-      popup.title("Known Cosmic Phenomena")
-      popup.geometry("600x400")
-      popup.configure(bg="#1a1a2e")
+    def list_phenomena(self):
+        popup = tk.Toplevel(self.root)
+        popup.title("Known Cosmic Phenomena")
+        popup.geometry("600x400")
+        popup.configure(bg="#1a1a2e")
 
-      tree = ttk.Treeview(popup, columns=("Phenomenon", "Equation", "Meaning", "Favorite"), show="headings")
-      tree.heading("Phenomenon", text="Phenomenon")
-      tree.heading("Equation", text="Equation")
-      tree.heading("Meaning", text="Meaning")
-      tree.heading("Favorite", text="Favorite")
-      tree.column("Phenomenon", width=200)
-      tree.column("Equation", width=150)
-      tree.column("Meaning", width=200)
-      tree.column("Favorite", width=50)
+        tree = ttk.Treeview(popup, columns=("Phenomenon", "Equation", "Meaning", "Favorite"), show="headings")
+        tree.heading("Phenomenon", text="Phenomenon")
+        tree.heading("Equation", text="Equation")
+        tree.heading("Meaning", text="Meaning")
+        tree.heading("Favorite", text="Favorite")
+        tree.column("Phenomenon", width=200)
+        tree.column("Equation", width=150)
+        tree.column("Meaning", width=200)
+        tree.column("Favorite", width=50)
 
-      for name, (eq, meaning) in phenomena.items():
-          tree.insert("", tk.END, values=(name, eq, meaning, "Add" if name not in self.favorites["phenomena"] else "Remove"), tags=("phenomenon", name))
-      
-      tree.tag_configure("phenomenon", foreground="darkgreen")
-      tree.bind("<Double-1>", lambda event: self.toggle_favorite(event, "phenomena"))
-      tree.pack(expand=True, fill="both", padx=10, pady=10)
-      
-  def list_signals(self):
-      popup = tk.Toplevel(self.root)
-      popup.title("Available Signals")
-      popup.geometry("300x200")
-      popup.configure(bg="#1a1a2e")
+        for name, (eq, meaning) in phenomena.items():
+            tree.insert("", tk.END, values=(name, eq, meaning, "Add" if name not in self.favorites["phenomena"] else "Remove"), tags=("phenomenon", name))
+        
+        tree.tag_configure("phenomenon", foreground="darkgreen")
+        tree.bind("<Double-1>", lambda event: self.toggle_favorite(event, "phenomena"))
+        tree.pack(expand=True, fill="both", padx=10, pady=10)
 
-      tree = ttk.Treeview(popup, columns=("Signal", "Favorite"), show="headings")
-      tree.heading("Signal", text="Signal")
-      tree.heading("Favorite", text="Favorite")
-      tree.column("Signal", width=150, anchor="center")
-      tree.column("Favorite", width=50)
+    def list_signals(self):
+        popup = tk.Toplevel(self.root)
+        popup.title("Available Signals")
+        popup.geometry("300x200")
+        popup.configure(bg="#1a1a2e")
 
-      for name in signals:
-          tree.insert("", tk.END, values=(name, "Add" if name not in self.favorites["signals"] else "Remove"), tags=("signal", name))
-      
-      tree.bind("<Double-1>", lambda event: self.toggle_favorite(event, "signals"))
-      tree.pack(expand=True, fill="both", padx=10, pady=10)
+        tree = ttk.Treeview(popup, columns=("Signal", "Favorite"), show="headings")
+        tree.heading("Signal", text="Signal")
+        tree.heading("Favorite", text="Favorite")
+        tree.column("Signal", width=150, anchor="center")
+        tree.column("Favorite", width=50)
 
+        for name in signals:
+            tree.insert("", tk.END, values=(name, "Add" if name not in self.favorites["signals"] else "Remove"), tags=("signal", name))
+        
+        tree.bind("<Double-1>", lambda event: self.toggle_favorite(event, "signals"))
+        tree.pack(expand=True, fill="both", padx=10, pady=10)
+        
     def run_signal(self):
         signal = self.signal_var.get()
         if not signal:
