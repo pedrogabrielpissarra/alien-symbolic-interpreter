@@ -1,4 +1,4 @@
-# Alien Symbolic Interpreter (Prototype v8 - GUI Version with Tkinter)
+# Alien Symbolic Interpreter (Prototype v9 - GUI Version with Fixed Behavior)
 # Each symbol maps to a concept or function with simulated behavior
 
 import random
@@ -7,21 +7,21 @@ from tkinter import ttk, scrolledtext
 
 # Symbol-function mapping (with simulated behaviors)
 symbols = {
-    "●": lambda ctx: ctx.update({"●": "Universe Initialized"}),
-    "◐": lambda ctx: ctx.update({"◐": "Condition Split"}),
-    "∴": lambda ctx: ctx.update({"∴": ["Option A", "Option B", "Option C"]}),
-    "✧": lambda ctx: ctx.update({"✧": random.choice(ctx.get("∴", ["Unknown"]))}),
-    "Ψ": lambda ctx: ctx.update({"Ψ": "Quantum Potential"}),
-    "∅": lambda ctx: ctx.update({"∅": None}),
-    "꩜": lambda ctx: ctx.update({"꩜": "Dimensional Fold Opened"}),
-    "⧗": lambda ctx: ctx.update({"⧗": "Entangled Pair Linked"}),
-    "⇌": lambda ctx: ctx.update({"⇌": "Oscillation Active"}),
-    "⬠": lambda ctx: ctx.update({"⬠": "Network Transmission"}),
-    "⇧": lambda ctx: ctx.update({"⇧": "Expanding"}),
-    "Ω": lambda ctx: ctx.update({"Ω": ctx.get("✧", "Observed Reality")}),
-    "⇀": lambda ctx: ctx.update({"⇀": "Subtle Motion"}),
-    "ϕ": lambda ctx: ctx.update({"ϕ": "Spiral Growth"}),
-    "∞": lambda ctx: ctx.update({"∞": "Infinite Potential"}),
+    "●": lambda ctx: ctx.update({"●": "Universe Initialized (Big Bang Triggered)"}),
+    "◐": lambda ctx: ctx.update({"◐": "Duality Formed (Half-State Observed)"}),
+    "∴": lambda ctx: ctx.update({"∴": [f"State {i}: Energy Level {random.randint(1, 100)}" for i in range(3)]}),
+    "✧": lambda ctx: ctx.update({"✧": f"State Collapsed to {random.choice(ctx.get('∴', ['Unknown State']))}"}),
+    "Ψ": lambda ctx: ctx.update({"Ψ": "Quantum Potential Activated"}),
+    "∅": lambda ctx: ctx.update({"∅": "Void State (No Energy)"}),
+    "꩜": lambda ctx: ctx.update({"꩜": "Dimensional Fold Opened (Spacetime Warped)"}),
+    "⧗": lambda ctx: ctx.update({"⧗": f"Entangled Pair Linked: {ctx.get('∴', ['Unknown'])[0]} ↔ {ctx.get('∴', ['Unknown'])[1]}"}),
+    "⇌": lambda ctx: ctx.update({"⇌": "Oscillation Active (Energy Fluctuating)"}),
+    "⬠": lambda ctx: ctx.update({"⬠": f"Network Transmission: {ctx.get('⧗', 'No Entanglement')}"}),
+    "⇧": lambda ctx: ctx.update({"⇧": "Expanding (Universe Growing)"}),
+    "Ω": lambda ctx: ctx.update({"Ω": f"Reality Formed: {ctx.get('✧', 'No Collapse Observed')}"}),
+    "⇀": lambda ctx: ctx.update({"⇀": "Subtle Motion (Neutrino-Like Movement)"}),
+    "ϕ": lambda ctx: ctx.update({"ϕ": "Spiral Growth (Galactic Formation)"}),
+    "∞": lambda ctx: ctx.update({"∞": "Infinite Potential (Unbounded Energy)"}),
 }
 
 # Phenomena symbolic dictionary
@@ -74,14 +74,14 @@ def interpret(expression, context):
         origin = origin.strip()
         target = target.strip()
         context[target] = context.get(origin, None)
-        return f"{origin} → {target} => {context.get(target)}"
+        return f"Transition: {origin} → {target} => {context.get(target)}"
 
     tokens = expression.replace("=", " = ").split()
     output = []
     for token in tokens:
         if token in symbols:
             symbols[token](context)
-            output.append(f"{token} => {context.get(token)}")
+            output.append(f"{token}: {context.get(token)}")
         elif token == "=":
             output.append("=")
         else:
@@ -92,7 +92,7 @@ def interpret(expression, context):
 class AlienSymbolicInterpreterGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("👽 Alien Symbolic Interpreter (Prototype v8)")
+        self.root.title("👽 Alien Symbolic Interpreter (Prototype v9)")
         self.context = {}  # Initialize context for symbolic operations
 
         # Main frame
