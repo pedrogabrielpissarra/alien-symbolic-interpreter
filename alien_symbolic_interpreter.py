@@ -1,4 +1,4 @@
-# Alien Symbolic Interpreter (Prototype v9 - GUI Version with Fixed Behavior)
+# Alien Symbolic Interpreter (Prototype v9.1 - GUI Version with Fixed Behavior)
 # Each symbol maps to a concept or function with simulated behavior
 
 import random
@@ -9,12 +9,12 @@ from tkinter import ttk, scrolledtext
 symbols = {
     "●": lambda ctx: ctx.update({"●": "Universe Initialized (Big Bang Triggered)"}),
     "◐": lambda ctx: ctx.update({"◐": "Duality Formed (Half-State Observed)"}),
-    "∴": lambda ctx: ctx.update({"∴": [f"State {i}: Energy Level {random.randint(1, 100)}" for i in range(3)]}),
+    "∴": lambda ctx: ctx.update({"∴": [f"State {i}: Energy Level {random.randint(1, 100)}" for i in range(max(2, random.randint(2, 5)))]}),  # Garante pelo menos 2 estados
     "✧": lambda ctx: ctx.update({"✧": f"State Collapsed to {random.choice(ctx.get('∴', ['Unknown State']))}"}),
     "Ψ": lambda ctx: ctx.update({"Ψ": "Quantum Potential Activated"}),
     "∅": lambda ctx: ctx.update({"∅": "Void State (No Energy)"}),
     "꩜": lambda ctx: ctx.update({"꩜": "Dimensional Fold Opened (Spacetime Warped)"}),
-    "⧗": lambda ctx: ctx.update({"⧗": f"Entangled Pair Linked: {ctx.get('∴', ['Unknown'])[0]} ↔ {ctx.get('∴', ['Unknown'])[1]}"}),
+    "⧗": lambda ctx: ctx.update({"⧗": f"Entangled Pair Linked: {ctx.get('∴', ['Unknown State 1', 'Unknown State 2'])[0]} ↔ {ctx.get('∴', ['Unknown State 1', 'Unknown State 2'])[1]}" if len(ctx.get('∴', ['Unknown State 1', 'Unknown State 2'])) >= 2 else "Entangled Pair Not Formed (Insufficient States)"}),
     "⇌": lambda ctx: ctx.update({"⇌": "Oscillation Active (Energy Fluctuating)"}),
     "⬠": lambda ctx: ctx.update({"⬠": f"Network Transmission: {ctx.get('⧗', 'No Entanglement')}"}),
     "⇧": lambda ctx: ctx.update({"⇧": "Expanding (Universe Growing)"}),
@@ -53,7 +53,7 @@ phenomena = {
 
 # Symbolic signal definitions
 signals = {
-    "FRB 121102": ["∞ ⇌ ⇧ = ⧗ × ϕ"],
+    "FRB 121102": ["∴", "∞ ⇌ ⇧ = ⧗ × ϕ"],  # Adiciona ∴ no início pra garantir que as possibilidades estejam inicializadas
     "Wow!": ["● ⇌ ✧"],
     "BLC1": ["◐ ⇌ ⬠"],
     "GRB": ["✧ × ꩜"]
@@ -92,7 +92,7 @@ def interpret(expression, context):
 class AlienSymbolicInterpreterGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("👽 Alien Symbolic Interpreter (Prototype v9)")
+        self.root.title("👽 Alien Symbolic Interpreter (Prototype v9.1)")
         self.context = {}  # Initialize context for symbolic operations
 
         # Main frame
