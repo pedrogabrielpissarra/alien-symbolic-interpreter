@@ -312,9 +312,9 @@ class AlienSymbolicInterpreterGUI:
         # Dark mode fixo (cosmic theme)
         self.root.configure(bg="#1a1a2e")
         self.style.configure("TFrame", background="#1a1a2e")
-        self.style.configure("TLabel", background="#1a1a2e", foreground="white", font=("Arial", 12))
+        self.style.configure("TLabel", background="#1a1a2e", foreground="white", font=("Arial", 11))
         # Ajustar o estilo dos botões
-        self.style.configure("Custom.TButton", background="#16213e", foreground="white", bordercolor="#16213e", focusthickness=0, font=("Arial", 14))
+        self.style.configure("Custom.TButton", background="#16213e", foreground="white", bordercolor="#16213e", focusthickness=0, font=("Arial", 12))
         self.style.map("Custom.TButton", background=[("active", "#0f3460")], foreground=[("active", "white")])
         self.style.configure("TEntry", fieldbackground="#0f3460", foreground="white", font=("Arial", 12))
         self.style.configure("TCombobox", fieldbackground="#0f3460", foreground="white", font=("Arial", 12))
