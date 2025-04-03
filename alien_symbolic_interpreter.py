@@ -1,4 +1,4 @@
-# Alien Symbolic Interpreter (Prototype v6 - CLI Version with Help & Phenomena)
+# Alien Symbolic Interpreter (Prototype v7 - CLI Version with Enhanced UX)
 # Each symbol maps to a concept or function with simulated behavior
 
 import random
@@ -57,6 +57,13 @@ signals = {
     "GRB": ["✧ × ꩜"]
 }
 
+# Example expressions for demonstration
+examples = [
+    ("Ψ = ∴ + ◐", "Simulates quantum superposition: combining possibilities and a split condition to form a quantum state."),
+    ("run Wow!", "Runs the Wow! Signal simulation: a totality oscillating into a collapse."),
+    ("explain Big Bang", "Explains the Big Bang phenomenon using its symbolic equation and meaning.")
+]
+
 # Symbolic parser with context and conditionals
 def interpret(expression, context):
     if expression.startswith("if"):
@@ -96,42 +103,75 @@ def run_script(script_lines, context):
 # Main CLI loop
 if __name__ == "__main__":
     context = {}  # Initialize an empty context for each session
-    print("👽 Alien Symbolic Interpreter - CLI Mode")
-    print("Type 'exit' to quit | 'signals' to list signal presets | 'phenomena' to list cosmic concepts")
-    print("You can also 'run SIGNAL_NAME' or 'explain PHENOMENON_NAME' or type direct symbolic expressions.")
-    print("Example: Ψ = ∴ + ◐")
+    print("👽 Welcome to the Alien Symbolic Interpreter (Prototype v7) 👽")
+    print("This tool simulates a 'language of shapes' for cosmic signals and phenomena.")
+    print("Explore the universe through symbolic equations inspired by real physics!")
+    print("\nHow to Use:")
+    print("- Type 'help' to see all available commands.")
+    print("- Type 'symbols' to list all available symbols and their meanings.")
+    print("- Type 'signals' to list preset cosmic signals (e.g., Wow!, FRB 121102).")
+    print("- Type 'phenomena' to list known cosmic phenomena (e.g., Quantum Superposition).")
+    print("- Type 'examples' to see example commands to get started.")
+    print("- Type 'run SIGNAL_NAME' to simulate a signal (e.g., 'run Wow!').")
+    print("- Type 'explain PHENOMENON_NAME' to learn about a phenomenon (e.g., 'explain Big Bang').")
+    print("- Or type a symbolic expression directly (e.g., 'Ψ = ∴ + ◐').")
+    print("- Type 'exit' to quit.")
+    print("\nTry starting with 'examples' or 'help' to get a feel for the tool!")
 
     while True:
         user_input = input(">> ").strip()
 
         if user_input.lower() == "exit":
-            print("Goodbye, human.")
+            print("Goodbye, human. Keep exploring the cosmos!")
             break
 
+        elif user_input.lower() == "help":
+            print("\nAvailable Commands:")
+            print("- help: Show this help message.")
+            print("- symbols: List all available symbols and their meanings.")
+            print("- signals: List preset cosmic signals (e.g., Wow!, FRB 121102).")
+            print("- phenomena: List known cosmic phenomena (e.g., Quantum Superposition).")
+            print("- examples: Show example commands to get started.")
+            print("- run SIGNAL_NAME: Simulate a cosmic signal (e.g., 'run Wow!').")
+            print("- explain PHENOMENON_NAME: Learn about a phenomenon (e.g., 'explain Big Bang').")
+            print("- [expression]: Type a symbolic expression directly (e.g., 'Ψ = ∴ + ◐').")
+            print("- exit: Quit the program.")
+
+        elif user_input.lower() == "symbols":
+            print("\nAvailable Symbols and Their Meanings:")
+            for symbol, func in symbols.items():
+                func(context)  # Update context to get the meaning
+                print(f"- {symbol}: {context.get(symbol)}")
+
         elif user_input.lower() == "signals":
-            print("Available signals:")
+            print("\nAvailable Signals:")
             for name in signals:
                 print(f"- {name}")
 
         elif user_input.lower() == "phenomena":
-            print("Known cosmic phenomena:")
+            print("\nKnown Cosmic Phenomena:")
             for name in phenomena:
                 print(f"- {name}")
+
+        elif user_input.lower() == "examples":
+            print("\nExample Commands to Get Started:")
+            for cmd, desc in examples:
+                print(f"- '{cmd}': {desc}")
 
         elif user_input.startswith("run "):
             sig_name = user_input[4:].strip()
             if sig_name in signals:
                 run_script(signals[sig_name], context)
             else:
-                print(f"Unknown signal: {sig_name}")
+                print(f"Unknown signal: {sig_name}. Type 'signals' to see available options.")
 
         elif user_input.startswith("explain "):
             pheno = user_input[8:].strip()
             if pheno in phenomena:
                 eq, meaning = phenomena[pheno]
-                print(f"{pheno}\n{eq}\n→ {meaning}")
+                print(f"\n{pheno}\n{eq}\n→ {meaning}")
             else:
-                print(f"Unknown phenomenon: {pheno}")
+                print(f"Unknown phenomenon: {pheno}. Type 'phenomena' to see available options.")
 
         else:
             print(interpret(user_input, context))
