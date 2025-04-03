@@ -145,7 +145,7 @@ class AlienSymbolicInterpreterGUI:
         self.expressions_output.tag_configure("equation", foreground="lightblue")
         self.expressions_output.tag_configure("error", foreground="red")
         self.expressions_output.tag_configure("separator", foreground="gray")
-        self.expressions_output.tag_configure("result", foreground="green")
+        self.expressions_output.tag_configure("result", foreground="lightblue")
         self.expressions_output.tag_configure("phenomenon", font=("Arial", 12, "bold"))
         self.expressions_output.insert(tk.END, "Expression results will appear here.\n\n")
 
@@ -157,7 +157,7 @@ class AlienSymbolicInterpreterGUI:
         self.signals_output.tag_configure("equation", foreground="lightblue")
         self.signals_output.tag_configure("error", foreground="red")
         self.signals_output.tag_configure("separator", foreground="gray")
-        self.signals_output.tag_configure("result", foreground="green")
+        self.signals_output.tag_configure("result", foreground="lightblue")
         self.signals_output.tag_configure("phenomenon", font=("Arial", 12, "bold"))
         self.signals_output.insert(tk.END, "Signal simulation results will appear here.\n\n")
 
@@ -170,7 +170,7 @@ class AlienSymbolicInterpreterGUI:
         self.phenomena_output.tag_configure("error", foreground="red")
         self.phenomena_output.tag_configure("separator", foreground="gray")
         self.phenomena_output.tag_configure("phenomenon", font=("Arial", 12, "bold"))
-        self.phenomena_output.tag_configure("result", foreground="green")
+        self.phenomena_output.tag_configure("result", foreground="lightblue")
         self.phenomena_output.insert(tk.END, "Phenomena explanations will appear here.\n\n")
 
         # Favorites Tab
@@ -180,7 +180,7 @@ class AlienSymbolicInterpreterGUI:
         self.favorites_output.grid(row=0, column=0, pady=5)
         self.favorites_output.tag_configure("info", foreground="yellow")
         self.favorites_output.tag_configure("separator", foreground="gray")
-        self.favorites_output.tag_configure("result", foreground="green")
+        self.favorites_output.tag_configure("result", foreground="lightblue")
         self.favorites_output.tag_configure("phenomenon", font=("Arial", 12, "bold"))
         self.favorites_output.insert(tk.END, "Your favorite phenomena and signals will appear here.\n")
         self.favorites_output.insert(tk.END, "Double-click items in 'List Phenomena' or 'List Signals' to add/remove favorites.\n")
