@@ -1,4 +1,4 @@
-# Alien Symbolic Interpreter (Prototype v10 - GUI Version with Clickable Symbols)
+# Alien Symbolic Interpreter (Prototype v11 - GUI Version with Horizontal Layout and Improved Listings)
 # Each symbol maps to a concept or function with simulated behavior
 
 import random
@@ -92,44 +92,36 @@ def interpret(expression, context):
 class AlienSymbolicInterpreterGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("👽 Alien Symbolic Interpreter (Prototype v10)")
+        self.root.title("👽 Alien Symbolic Interpreter (Prototype v11)")
         self.context = {}  # Initialize context for symbolic operations
         self.current_expression = []  # Store the current expression being built
 
-        # Main frame
+        # Main frame with horizontal layout
         self.main_frame = ttk.Frame(self.root, padding="10")
         self.main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
-        # Welcome message
-        self.welcome_label = ttk.Label(self.main_frame, text="Welcome to the Alien Symbolic Interpreter!\nExplore the universe through a language of shapes.", justify="center")
-        self.welcome_label.grid(row=0, column=0, columnspan=3, pady=10)
+        # Left Column: Output Area
+        self.output_frame = ttk.Frame(self.main_frame)
+        self.output_frame.grid(row=0, column=0, padx=10, pady=5, sticky=(tk.N, tk.S))
+        self.output_label = ttk.Label(self.output_frame, text="Output:")
+        self.output_label.grid(row=0, column=0, pady=5)
+        self.output_area = scrolledtext.ScrolledText(self.output_frame, width=40, height=20, wrap=tk.WORD)
+        self.output_area.grid(row=1, column=0, pady=5)
+        self.output_area.insert(tk.END, "Results will appear here.\nClick buttons to explore or build expressions.\n\n")
 
-        # Output area (scrolled text)
-        self.output_area = scrolledtext.ScrolledText(self.main_frame, width=60, height=15, wrap=tk.WORD)
-        self.output_area.grid(row=1, column=0, columnspan=3, pady=10)
-        self.output_area.insert(tk.END, "Click the buttons below to explore symbols, phenomena, and signals.\nOr build your own expression using the clickable symbols!\n\n")
-
-        # Symbols, Phenomena, Signals buttons
-        self.symbols_button = ttk.Button(self.main_frame, text="List Symbols", command=self.list_symbols)
-        self.symbols_button.grid(row=2, column=0, padx=5, pady=5)
-
-        self.phenomena_button = ttk.Button(self.main_frame, text="List Phenomena", command=self.list_phenomena)
-        self.phenomena_button.grid(row=2, column=1, padx=5, pady=5)
-
-        self.signals_button = ttk.Button(self.main_frame, text="List Signals", command=self.list_signals)
-        self.signals_button.grid(row=2, column=2, padx=5, pady=5)
-
-        # Build Expression Section
-        self.build_label = ttk.Label(self.main_frame, text="Build Your Expression (Click Symbols Below):")
-        self.build_label.grid(row=3, column=0, columnspan=3, pady=5)
+        # Center Column: Build Expression
+        self.build_frame = ttk.Frame(self.main_frame)
+        self.build_frame.grid(row=0, column=1, padx=10, pady=5, sticky=(tk.N))
+        self.build_label = ttk.Label(self.build_frame, text="Build Your Expression:")
+        self.build_label.grid(row=0, column=0, pady=5)
 
         # Current expression display
-        self.expression_display = ttk.Label(self.main_frame, text="Current Expression: (empty)", font=("Arial", 12))
-        self.expression_display.grid(row=4, column=0, columnspan=3, pady=5)
+        self.expression_display = ttk.Label(self.build_frame, text="Current Expression: (empty)", font=("Arial", 12))
+        self.expression_display.grid(row=1, column=0, pady=5)
 
         # Clickable symbols grid
-        self.symbols_frame = ttk.Frame(self.main_frame)
-        self.symbols_frame.grid(row=5, column=0, columnspan=3, pady=5)
+        self.symbols_frame = ttk.Frame(self.build_frame)
+        self.symbols_frame.grid(row=2, column=0, pady=5)
         self.symbol_buttons = {}
         row, col = 0, 0
         for symbol in symbols.keys():
@@ -142,8 +134,8 @@ class AlienSymbolicInterpreterGUI:
                 row += 1
 
         # Additional operators
-        self.operator_frame = ttk.Frame(self.main_frame)
-        self.operator_frame.grid(row=6, column=0, columnspan=3, pady=5)
+        self.operator_frame = ttk.Frame(self.build_frame)
+        self.operator_frame.grid(row=3, column=0, pady=5)
         ttk.Button(self.operator_frame, text="+", width=5, command=lambda: self.add_symbol("+")).grid(row=0, column=0, padx=2)
         ttk.Button(self.operator_frame, text="×", width=5, command=lambda: self.add_symbol("×")).grid(row=0, column=1, padx=2)
         ttk.Button(self.operator_frame, text="=", width=5, command=lambda: self.add_symbol("=")).grid(row=0, column=2, padx=2)
@@ -151,34 +143,46 @@ class AlienSymbolicInterpreterGUI:
         ttk.Button(self.operator_frame, text="Clear", width=10, command=self.clear_expression).grid(row=0, column=4, padx=2)
 
         # Interpret built expression
-        self.interpret_build_button = ttk.Button(self.main_frame, text="Interpret Built Expression", command=self.interpret_built_expression)
-        self.interpret_build_button.grid(row=7, column=0, columnspan=3, pady=5)
+        self.interpret_build_button = ttk.Button(self.build_frame, text="Interpret Built Expression", command=self.interpret_built_expression)
+        self.interpret_build_button.grid(row=4, column=0, pady=5)
+
+        # Right Column: Controls
+        self.controls_frame = ttk.Frame(self.main_frame)
+        self.controls_frame.grid(row=0, column=2, padx=10, pady=5, sticky=(tk.N))
+
+        # List buttons
+        self.symbols_button = ttk.Button(self.controls_frame, text="List Symbols", command=self.list_symbols)
+        self.symbols_button.grid(row=0, column=0, pady=5, sticky=(tk.W, tk.E))
+        self.phenomena_button = ttk.Button(self.controls_frame, text="List Phenomena", command=self.list_phenomena)
+        self.phenomena_button.grid(row=1, column=0, pady=5, sticky=(tk.W, tk.E))
+        self.signals_button = ttk.Button(self.controls_frame, text="List Signals", command=self.list_signals)
+        self.signals_button.grid(row=2, column=0, pady=5, sticky=(tk.W, tk.E))
 
         # Manual Expression Input
-        self.expression_label = ttk.Label(self.main_frame, text="Or Enter a Symbolic Expression Manually (e.g., Ψ = ∴ + ◐):")
-        self.expression_label.grid(row=8, column=0, columnspan=3, pady=5)
-        self.expression_entry = ttk.Entry(self.main_frame, width=50)
-        self.expression_entry.grid(row=9, column=0, columnspan=3, pady=5)
-        self.interpret_button = ttk.Button(self.main_frame, text="Interpret Manual Expression", command=self.interpret_expression)
-        self.interpret_button.grid(row=10, column=0, columnspan=3, pady=5)
+        self.expression_label = ttk.Label(self.controls_frame, text="Enter Expression Manually:")
+        self.expression_label.grid(row=3, column=0, pady=5)
+        self.expression_entry = ttk.Entry(self.controls_frame, width=30)
+        self.expression_entry.grid(row=4, column=0, pady=5)
+        self.interpret_button = ttk.Button(self.controls_frame, text="Interpret Manual", command=self.interpret_expression)
+        self.interpret_button.grid(row=5, column=0, pady=5, sticky=(tk.W, tk.E))
 
-        # Run Signal dropdown and button
-        self.signal_label = ttk.Label(self.main_frame, text="Select a Signal to Simulate:")
-        self.signal_label.grid(row=11, column=0, columnspan=3, pady=5)
+        # Run Signal
+        self.signal_label = ttk.Label(self.controls_frame, text="Simulate a Signal:")
+        self.signal_label.grid(row=6, column=0, pady=5)
         self.signal_var = tk.StringVar()
-        self.signal_dropdown = ttk.Combobox(self.main_frame, textvariable=self.signal_var, values=list(signals.keys()))
-        self.signal_dropdown.grid(row=12, column=0, columnspan=3, pady=5)
-        self.run_signal_button = ttk.Button(self.main_frame, text="Run Signal", command=self.run_signal)
-        self.run_signal_button.grid(row=13, column=0, columnspan=3, pady=5)
+        self.signal_dropdown = ttk.Combobox(self.controls_frame, textvariable=self.signal_var, values=list(signals.keys()), width=27)
+        self.signal_dropdown.grid(row=7, column=0, pady=5)
+        self.run_signal_button = ttk.Button(self.controls_frame, text="Run Signal", command=self.run_signal)
+        self.run_signal_button.grid(row=8, column=0, pady=5, sticky=(tk.W, tk.E))
 
-        # Explain Phenomenon dropdown and button
-        self.phenomenon_label = ttk.Label(self.main_frame, text="Select a Phenomenon to Explain:")
-        self.phenomenon_label.grid(row=14, column=0, columnspan=3, pady=5)
+        # Explain Phenomenon
+        self.phenomenon_label = ttk.Label(self.controls_frame, text="Explain a Phenomenon:")
+        self.phenomenon_label.grid(row=9, column=0, pady=5)
         self.phenomenon_var = tk.StringVar()
-        self.phenomenon_dropdown = ttk.Combobox(self.main_frame, textvariable=self.phenomenon_var, values=list(phenomena.keys()))
-        self.phenomenon_dropdown.grid(row=15, column=0, columnspan=3, pady=5)
-        self.explain_phenomenon_button = ttk.Button(self.main_frame, text="Explain Phenomenon", command=self.explain_phenomenon)
-        self.explain_phenomenon_button.grid(row=16, column=0, columnspan=3, pady=5)
+        self.phenomenon_dropdown = ttk.Combobox(self.controls_frame, textvariable=self.phenomenon_var, values=list(phenomena.keys()), width=27)
+        self.phenomenon_dropdown.grid(row=10, column=0, pady=5)
+        self.explain_phenomenon_button = ttk.Button(self.controls_frame, text="Explain Phenomenon", command=self.explain_phenomenon)
+        self.explain_phenomenon_button.grid(row=11, column=0, pady=5, sticky=(tk.W, tk.E))
 
     def add_symbol(self, symbol):
         self.current_expression.append(symbol)
@@ -204,23 +208,66 @@ class AlienSymbolicInterpreterGUI:
         self.output_area.see(tk.END)
 
     def list_symbols(self):
-        self.output_area.insert(tk.END, "\nAvailable Symbols and Their Meanings:\n")
+        # Create a popup window
+        popup = tk.Toplevel(self.root)
+        popup.title("Available Symbols")
+        popup.geometry("500x400")
+
+        # Create a Treeview (table)
+        tree = ttk.Treeview(popup, columns=("Symbol", "Meaning"), show="headings")
+        tree.heading("Symbol", text="Symbol")
+        tree.heading("Meaning", text="Meaning")
+        tree.column("Symbol", width=100, anchor="center")
+        tree.column("Meaning", width=350)
+
+        # Populate the table
         for symbol, func in symbols.items():
             func(self.context)
-            self.output_area.insert(tk.END, f"- {symbol}: {self.context.get(symbol)}\n")
-        self.output_area.see(tk.END)
+            tree.insert("", tk.END, values=(symbol, self.context.get(symbol)), tags=("symbol",))
+        
+        # Style the table
+        tree.tag_configure("symbol", foreground="blue")
+        tree.pack(expand=True, fill="both", padx=10, pady=10)
 
     def list_phenomena(self):
-        self.output_area.insert(tk.END, "\nKnown Cosmic Phenomena:\n")
-        for name in phenomena:
-            self.output_area.insert(tk.END, f"- {name}\n")
-        self.output_area.see(tk.END)
+        # Create a popup window
+        popup = tk.Toplevel(self.root)
+        popup.title("Known Cosmic Phenomena")
+        popup.geometry("600x400")
+
+        # Create a Treeview (table)
+        tree = ttk.Treeview(popup, columns=("Phenomenon", "Equation", "Meaning"), show="headings")
+        tree.heading("Phenomenon", text="Phenomenon")
+        tree.heading("Equation", text="Equation")
+        tree.heading("Meaning", text="Meaning")
+        tree.column("Phenomenon", width=200)
+        tree.column("Equation", width=150)
+        tree.column("Meaning", width=250)
+
+        # Populate the table
+        for name, (eq, meaning) in phenomena.items():
+            tree.insert("", tk.END, values=(name, eq, meaning), tags=("phenomenon",))
+        
+        # Style the table
+        tree.tag_configure("phenomenon", foreground="darkgreen")
+        tree.pack(expand=True, fill="both", padx=10, pady=10)
 
     def list_signals(self):
-        self.output_area.insert(tk.END, "\nAvailable Signals:\n")
+        # Create a popup window
+        popup = tk.Toplevel(self.root)
+        popup.title("Available Signals")
+        popup.geometry("300x200")
+
+        # Create a Treeview (table)
+        tree = ttk.Treeview(popup, columns=("Signal",), show="headings")
+        tree.heading("Signal", text="Signal")
+        tree.column("Signal", width=200, anchor="center")
+
+        # Populate the table
         for name in signals:
-            self.output_area.insert(tk.END, f"- {name}\n")
-        self.output_area.see(tk.END)
+            tree.insert("", tk.END, values=(name,))
+        
+        tree.pack(expand=True, fill="both", padx=10, pady=10)
 
     def interpret_expression(self):
         expression = self.expression_entry.get().strip()
@@ -259,5 +306,6 @@ class AlienSymbolicInterpreterGUI:
 # Run the GUI
 if __name__ == "__main__":
     root = tk.Tk()
+    root.geometry("1000x500")  # Set a reasonable window size
     app = AlienSymbolicInterpreterGUI(root)
     root.mainloop()
