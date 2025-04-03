@@ -107,9 +107,8 @@ class AlienSymbolicInterpreterGUI:
         # Set window size
         self.root.geometry("1000x500")
 
-        # Configure styles for dark and light modes
+        # Configure styles for dark and light modes (but don't apply yet)
         self.style = ttk.Style()
-        self.configure_styles()
 
         # Main frame with horizontal layout
         self.main_frame = ttk.Frame(self.root, padding="10")
@@ -265,6 +264,9 @@ class AlienSymbolicInterpreterGUI:
         self.favorites_dropdown.grid(row=19, column=0, pady=5)
         self.favorites_button = ttk.Button(self.controls_frame, text="Run Favorite", command=self.run_favorite)
         self.favorites_button.grid(row=20, column=0, pady=5, sticky=(tk.W, tk.E))
+
+        # Apply styles *after* all widgets are created
+        self.configure_styles()
 
     def configure_styles(self):
         if self.dark_mode:
