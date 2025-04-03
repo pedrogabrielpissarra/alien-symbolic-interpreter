@@ -185,7 +185,6 @@ class AlienSymbolicInterpreterGUI:
         self.favorites_output.insert(tk.END, "Your favorite phenomena and signals will appear here.\n")
         self.favorites_output.insert(tk.END, "Double-click items in 'List Phenomena' or 'List Signals' to add/remove favorites.\n")
         self.favorites_output.insert(tk.END, "Select a favorite from the dropdown and click 'Run Favorite' to execute.\n\n")
-        self.update_favorites_output()  # Populate the favorites list initially
 
         # Output controls
         self.clear_output_button = ttk.Button(self.output_frame, text="Clear Output", command=self.clear_output, style="Custom.TButton")
@@ -301,6 +300,9 @@ class AlienSymbolicInterpreterGUI:
 
         # Apply styles *after* all widgets are created
         self.configure_styles()
+
+        # Populate the favorites list initially, after all widgets are created
+        self.update_favorites_output()
 
     def configure_styles(self):
         # Forçar o tema "clam" para maior controle sobre os estilos
