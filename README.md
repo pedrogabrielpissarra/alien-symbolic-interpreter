@@ -70,4 +70,4 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 
 #Contact
 
-For questions or feedback, reach out to Pedro Gabriel Pissarra via GitHub.
+For questions or feedback, reach out to Pedro Gabriel Pissarra via GitHub or Medium
