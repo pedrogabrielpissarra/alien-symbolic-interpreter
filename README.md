@@ -65,6 +65,9 @@ https://medium.com/@pedro.pissarra/the-language-of-shapes-a-new-approach-to-cosm
 
 Contributions are welcome! If you'd like to enhance the Alien Symbolic Interpreter (e.g., add new symbols, improve the GUI, or integrate quantum computing features), please fork the repository, make your changes, and submit a pull request. Feel free to open issues for bug reports or suggestions.
 
+### License
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+
 #Contact
 
 For questions or feedback, reach out to Pedro Gabriel Pissarra via GitHub.
