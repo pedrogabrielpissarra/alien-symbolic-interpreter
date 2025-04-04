@@ -59,6 +59,7 @@ List Phenomena: Explore predefined cosmic phenomena.
 List Signals: Check supported signal interpretations.
 Favorites: Save and recall your favorite interpretations using the JSON feature.
 For a detailed example, refer to the case study in the associated Medium article: The Language of Shapes: A New Approach to Cosmic Signals.
+https://medium.com/@pedro.pissarra/the-language-of-shapes-a-new-approach-to-cosmic-signals-41b27f34a1d1
 
 #Contributing
 
