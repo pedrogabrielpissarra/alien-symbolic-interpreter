@@ -1,4 +1,5 @@
-#Alien Symbolic Interpreter#
+#Alien Symbolic Interpreter
+
 The Alien Symbolic Interpreter is an innovative tool designed to decode cosmic signals using a symbolic framework, inspired by the concept of a "language of shapes." This program translates symbolic expressions into cosmic narratives, offering a unique approach to interpreting phenomena like the Wow! Signal. It also serves as a prototype for potential applications in quantum computing. This README provides step-by-step instructions to install and use the Alien Symbolic Interpreter.
 
 #Prerequisites
